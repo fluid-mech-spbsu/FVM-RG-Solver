@@ -39,7 +39,7 @@ protected:
     double calcTempHalf(macroParam p1, size_t component, double velocityHalf, string side);
     double interp1(double value1, double value2);
     macroParam downLast, upLast;
-    double sigma = 1; // [0 1]
+    double sigma = 0.5; // [0 1]
     bool presEq = true;
 
 };

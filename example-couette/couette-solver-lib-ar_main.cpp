@@ -27,7 +27,7 @@ int main()
     //////////////////////////////////////////////////////////////
     ///////////////////// Border Condition for Couette ///////////
     //////////////////////////////////////////////////////////////
-    int caseType = 1;
+    int caseType =1;
 
     double T_up_wall;
     double T_down_wall;
@@ -44,7 +44,7 @@ int main()
     {
         T_up_wall = 273;
         T_down_wall = 273;
-        velocity_up = 300; //1888.84;
+        velocity_up = 1888.84; //1888.84;
         velocity_down = 0;
     }
 
@@ -82,15 +82,15 @@ int main()
     startParamCouetteAr.setMixture(Ar); // TODO temp
     startParamCouetteArSlip.setMixture(Ar); // TODO temp
     macroParam startParamAr(Ar);
-    bool newSolving = true;
+    bool newSolving = false;
     if(newSolving)
     {
-        startParamAr.density =  0.03168; //0.00012786; // 0.03168;
+        startParamAr.density =  0.00012786; //0.00012786; // 0.03168;
         startParamAr.fractionArray[0] = 1;
         startParamAr.densityArray[0] =  startParamAr.fractionArray[0] * startParamAr.density;
 
         startParamAr.temp = 270; //140
-        startParamAr.velocity_tau = 200;
+        startParamAr.velocity_tau = 500;
         startParamAr.velocity_normal = 0;
 
         startParamCouetteAr.setBorderCondition(&borderConditionCouette);
@@ -136,7 +136,7 @@ int main()
     vector<macroParam> startParameters;
     reader.getPoints(startParameters);
 
-    GodunovSolver solver(Ar ,solParam, SystemOfEquationType::couette2Alt, RiemannSolverType::HLLESolver);
+    GodunovSolver solver(Ar ,solParam, SystemOfEquationType::couette1, RiemannSolverType::ExacRiemanSolver);
     double h = 1;
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);

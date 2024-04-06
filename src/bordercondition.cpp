@@ -3,7 +3,7 @@
 static int counter = 0;
 void BorderConditionCouette::updatePoints(vector<macroParam> &points)
 {
-    bool presEq = 1;
+    bool presEq = 0;
     size_t N = points.size();
     Mixture mixture = points[1].mixture;
     if(presEq)
@@ -37,7 +37,32 @@ void BorderConditionCouette::updatePoints(vector<macroParam> &points)
     }
     else
     {
-        //TODO
+        //0
+        points[0].mixture = mixture;
+        points[0].density = points[1].density;
+        points[0].fractionArray = points[1].fractionArray;
+        for(int i = 0; i < points[0].mixture.components.size(); i++)
+            points[0].densityArray[i] = points[0].density * points[0].fractionArray[i];
+
+        points[0].velocity_tau = -points[1].velocity_tau + 2.* down_velocity;
+        points[0].velocity_normal = -points[1].velocity_normal;
+        points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) + pow(fabs(points[0].velocity_normal),2));
+        points[0].temp = -points[1].temp +  2. * down_temp;
+        points[0].pressure = points[0].density * UniversalGasConstant * points[0].temp / (mixture.molarMass(points[0].fractionArray));
+
+
+        //solParam.NumCell-1
+        points[N-1].mixture = mixture;
+        points[N-1].density = points[N-2].density;
+        points[N-1].fractionArray = points[N-2].fractionArray;
+        for(int i = 0; i < points[N-1].mixture.components.size(); i++)
+            points[N-1].densityArray[i] = points[N-1].density * points[0].fractionArray[i];
+
+        points[N-1].velocity_tau = -points[N-2].velocity_tau + 2.* up_velocity;
+        points[N-1].velocity_normal = -points[N-2].velocity_normal;
+        points[N-1].velocity = sqrt(pow(fabs(points[N-1].velocity_tau),2) + pow(fabs(points[N-1].velocity_normal),2));
+        points[N-1].temp = -points[N-2].temp +  2. * up_temp;
+        points[N-1].pressure = points[N-1].density * UniversalGasConstant * points[N-1].temp / (mixture.molarMass(points[N-1].fractionArray));
     }
     return;
 }
