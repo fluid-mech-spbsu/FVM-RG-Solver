@@ -85,8 +85,8 @@ int main()
     startParamO2_O.fractionArray[1] = 0.01;
     startParamO2_O.densityArray[1] =  startParamO2_O.fractionArray[1] * startParamO2_O.density;
 
-    startParamO2_O.temp = 140;
-    startParamO2_O.velocity_tau = 0;
+    startParamO2_O.temp = 273;
+    startParamO2_O.velocity_tau = 150;
     startParamO2_O.velocity_normal = 0;
 
     startParamCouetteO2_O.setBorderCondition(&borderConditionCouette);

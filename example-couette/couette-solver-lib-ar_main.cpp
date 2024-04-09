@@ -11,10 +11,7 @@ std::string GetCurrentWorkingDir( void ) {
 
    std::string res = parentDir.string() + "/FVM-RG-Solver/example-couette";
 
-    // std::string res = parentDir.string() + "/main/example-couette"; // !normal case using qt
     return res;
-//    return currentWorkingDir; // without qt
-//    return currentWorkingDir.string();
 }
 
 namespace fs = std::filesystem;
@@ -27,7 +24,7 @@ int main()
     //////////////////////////////////////////////////////////////
     ///////////////////// Border Condition for Couette ///////////
     //////////////////////////////////////////////////////////////
-    int caseType =1;
+    int caseType = 1;
 
     double T_up_wall;
     double T_down_wall;
@@ -44,7 +41,7 @@ int main()
     {
         T_up_wall = 273;
         T_down_wall = 273;
-        velocity_up = 1888.84; //1888.84;
+        velocity_up = 1888.84; //300 //1888.84;
         velocity_down = 0;
     }
 
@@ -57,6 +54,8 @@ int main()
 
     BorderConditionCouetteSlip borderConditionCouetteSlip;
     borderConditionCouetteSlip.setWallParameters(velocity_up, velocity_down, T_up_wall, T_down_wall);
+    double accommodationCoeff = 0.5;
+    borderConditionCouetteSlip.setAccommodationCoeff(accommodationCoeff);
 
     //////////////////////////////////////////////////////////////
 
@@ -85,12 +84,12 @@ int main()
     bool newSolving = false;
     if(newSolving)
     {
-        startParamAr.density =  0.00012786; //0.00012786; // 0.03168;
+        startParamAr.density = 0.00012786; //0.00012786; // 0.03168;
         startParamAr.fractionArray[0] = 1;
         startParamAr.densityArray[0] =  startParamAr.fractionArray[0] * startParamAr.density;
 
         startParamAr.temp = 270; //140
-        startParamAr.velocity_tau = 500;
+        startParamAr.velocity_tau = 400;
         startParamAr.velocity_normal = 0;
 
         startParamCouetteAr.setBorderCondition(&borderConditionCouette);
@@ -149,11 +148,18 @@ int main()
     {
         solver.setBorderConditions(&borderConditionCouetteSlip); // Slip border
         solver.setStartDistribution(&startParamCouetteArSlip); // Slip border
+        writer.writeSimulationParam("border type", "noSlip");
     }
     else
     {
         solver.setBorderConditions(&borderConditionCouette);
         solver.setStartDistribution(&startParamCouetteAr);
+        writer.writeSimulationParam("border type", "noSlip");
     }
+
+    writer.writeSimulationParam("number of cell", solParam.NumCell);
+    writer.writeSimulationParam("gamma", solParam.Gamma);
+    writer.writeSimulationParam("CFL", solParam.CFL);
+    writer.writeSimulationParam("accommodationCoeff",accommodationCoeff);
     solver.solve();
 }

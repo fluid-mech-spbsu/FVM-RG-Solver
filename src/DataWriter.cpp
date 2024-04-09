@@ -1,4 +1,6 @@
 #include "datawriter.h"
+#include <cstdio>
+#include <cstdlib>
 DataWriter::DataWriter(std::string pathName_)
 {
 
@@ -6,6 +8,9 @@ DataWriter::DataWriter(std::string pathName_)
     fs::path dataDir = directory / "data";
     fs::remove_all(dataDir);
     fs::create_directories(dataDir);
+    fs::path infoFile = directory/"simInfo.txt";
+    if(fileExist(infoFile.string()))
+        std::remove(infoFile.string().c_str());
 }
 
 fs::path DataWriter::createTimeDirectory(double time)
@@ -14,6 +19,21 @@ fs::path DataWriter::createTimeDirectory(double time)
     fs::create_directories(localDir);
     return localDir;
 }
+
+void DataWriter::writeSimulationParam(string name, double value)
+{
+    ofstream info(directory/"simInfo.txt",std::ios::app);
+    info<<name<<" : "<< value<< std::endl;
+    info.close();
+}
+
+void DataWriter::writeSimulationParam(string name, string value)
+{
+    ofstream info(directory/"simInfo.txt",std::ios::app);
+    info<<name<<" : "<< value<< std::endl;
+    info.close();
+}
+
 
 void DataWriter::writeData(vector<macroParam> data, double time)
 {
@@ -115,6 +135,12 @@ void DataWriter::writeData(vector<macroParam> data, macroParam dataDown, macroPa
 void DataWriter::setDelta_h(double dh_)
 {
     dh = dh_;
+}
+
+bool DataWriter::fileExist(const string &name)
+{
+    ifstream f(name.c_str());
+    return f.good();
 }
 
 

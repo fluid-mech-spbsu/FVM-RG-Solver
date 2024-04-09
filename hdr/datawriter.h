@@ -19,10 +19,14 @@ struct DataWriter
 public:
     DataWriter(string pathName_);
     fs::path createTimeDirectory(double time);
+    void writeSimulationParam(string name, double value);
+    void writeSimulationParam(string name, string value);
     void writeData(vector<macroParam> data, double time);
     void writeData(vector<macroParam> data, macroParam dataDown, macroParam dataUp, double time);
     void setDelta_h(double dh_);
 private:
+    inline bool fileExist(const std::string& name);
+
     double dh = 1;
     fs::path directory;
 };

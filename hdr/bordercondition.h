@@ -31,6 +31,7 @@ struct BorderConditionCouetteSlip : public BorderConditionCouette
 {
     void updatePointsStart(vector<macroParam> &points);
     void updatePoints(vector<macroParam> &points);
+    void setAccommodationCoeff(double coeff){sigma = coeff;};
     macroParam getWallParam(string side);
 
     double get_dyc_dy(){return 0;};
