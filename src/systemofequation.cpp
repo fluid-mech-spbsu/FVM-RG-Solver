@@ -885,7 +885,11 @@ void Couette2AltBinary::calcAndRemeberTemp()
         }
         p0.density = getDensity(i);
 
-        temperature[i] = eqSolver->solveEq(energyCalculator,p0,U[energy][i]);
+        std::function<double(macroParam&)> energyFunc = energyCalculator->getEnergyFunc();
+        double rightPart = U[energy][i];
+        std::function<double( double& )> f = [energyFunc, &p0, rightPart] (double& temp){p0.temp = temp; return energyFunc(p0) - rightPart; };
+
+        temperature[i] = eqSolver->solveEq(f,p0.temp);
     }
     return;
 }

@@ -1,30 +1,30 @@
 #include "numeric.h"
 
-double Newton::solveEq(EnergyCalc *energy , macroParam point, double rightPart)
+double Newton::solveEq(std::function<double( double& )> EnergyCalc, double startValue)
 {
-    macroParam p2 = point;
-    macroParam p3 = point;
     double dh = 0.0001;
-    p2.temp += dh;
-    p3.temp -= dh;
+    double t1 = startValue + dh, t2 = startValue;
 
-    auto f = energy->getEnergyFunc();
-    double f2 = f(p2);
-    double f3 = f(p3);
-    double df23 = (f2 - f3) / (2 * dh);
+    auto foo = EnergyCalc;
 
-    double t1  = point.temp - (f(point) - rightPart) / df23; // первое приближение
-    double eps = dh / 10;
-    while (fabs(t1 - point.temp) > eps)
+    double f1 = foo(t1);
+    double f2 = foo(t2);
+    double df = (f1 - f2) / (dh);
+
+    double nextT = startValue - foo(startValue) / df; // первое приближение
+    double prevT  = startValue; // первое приближение
+    double eps = dh/100;
+    while (fabs(nextT - prevT) > eps)
     {
-        point.temp = t1;
-        p2.temp = t1 + 0.00001;
-        p3.temp = t1 - 0.00001;
-        f2 = f(p2);
-        f3 = f(p3);
-        df23 = (f2 - f3) / 0.00002;
+        prevT = nextT;
+        t1 = prevT + dh;
+        t2 = prevT;
+        f1 = foo(t1);
+        f2 = foo(t2);
+        df = (f1 - f2) / (dh);
 
-        t1 = point.temp - (f(point) - rightPart) / df23; // последующие приближения
+        nextT = prevT - foo(prevT) / df; // последующие приближения
     }
-    return t1;
+    return nextT;
 }
+

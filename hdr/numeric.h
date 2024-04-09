@@ -5,9 +5,9 @@
 
 struct NonLinearEqSolver
 {
-    virtual double solveEq(EnergyCalc *energy, macroParam point, double rightPart) = 0;
+    virtual double solveEq(std::function<double( double& )> EnergyCalc, double startValue) = 0;
 };
 struct Newton : public NonLinearEqSolver
 {
-    double solveEq(EnergyCalc *energy, macroParam point, double rightPart);
+    double solveEq(std::function<double( double& )> EnergyCalc, double startValue);
 };

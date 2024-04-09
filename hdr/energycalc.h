@@ -1,11 +1,11 @@
 #pragma once
 #include "macroparam.h"
-
+#include <functional>
 struct EnergyCalc
 {
     EnergyCalc(){};
     virtual double calcEnergy(macroParam & point) = 0;
-    auto getEnergyFunc(){
+    std::function<double(macroParam&)> getEnergyFunc(){
         return [&](macroParam & point) -> double{
             return this->calcEnergy(point);
         };
