@@ -24,8 +24,7 @@ int main()
     //////////////////////////////////////////////////////////////
     ///////////////////// Border Condition for Couette ///////////
     //////////////////////////////////////////////////////////////
-    int caseType = 1;
-
+    int caseType = 0;
     double T_up_wall;
     double T_down_wall;
     double velocity_up;
@@ -41,7 +40,7 @@ int main()
     {
         T_up_wall = 273;
         T_down_wall = 273;
-        velocity_up = 1888.84; //300 //1888.84;
+        velocity_up = 300; //300 //1888.84;
         velocity_down = 0;
     }
 
@@ -54,7 +53,7 @@ int main()
 
     BorderConditionCouetteSlip borderConditionCouetteSlip;
     borderConditionCouetteSlip.setWallParameters(velocity_up, velocity_down, T_up_wall, T_down_wall);
-    double accommodationCoeff = 0.5;
+    double accommodationCoeff = 1;
     borderConditionCouetteSlip.setAccommodationCoeff(accommodationCoeff);
 
     //////////////////////////////////////////////////////////////
@@ -81,15 +80,15 @@ int main()
     startParamCouetteAr.setMixture(Ar); // TODO temp
     startParamCouetteArSlip.setMixture(Ar); // TODO temp
     macroParam startParamAr(Ar);
-    bool newSolving = false;
+    bool newSolving = true;
     if(newSolving)
     {
         startParamAr.density = 0.00012786; //0.00012786; // 0.03168;
         startParamAr.fractionArray[0] = 1;
         startParamAr.densityArray[0] =  startParamAr.fractionArray[0] * startParamAr.density;
 
-        startParamAr.temp = 270; //140
-        startParamAr.velocity_tau = 400;
+        startParamAr.temp = 1000; //140
+        startParamAr.velocity_tau = 150;
         startParamAr.velocity_normal = 0;
 
         startParamCouetteAr.setBorderCondition(&borderConditionCouette);
@@ -135,7 +134,7 @@ int main()
     vector<macroParam> startParameters;
     reader.getPoints(startParameters);
 
-    GodunovSolver solver(Ar ,solParam, SystemOfEquationType::couette1, RiemannSolverType::ExacRiemanSolver);
+    GodunovSolver solver(Ar ,solParam, SystemOfEquationType::couette2Alt , RiemannSolverType::HLLESolver);
     double h = 1;
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
@@ -148,7 +147,8 @@ int main()
     {
         solver.setBorderConditions(&borderConditionCouetteSlip); // Slip border
         solver.setStartDistribution(&startParamCouetteArSlip); // Slip border
-        writer.writeSimulationParam("border type", "noSlip");
+        writer.writeSimulationParam("border type", "slip");
+        writer.writeSimulationParam("accommodationCoeff",accommodationCoeff);
     }
     else
     {
@@ -160,6 +160,5 @@ int main()
     writer.writeSimulationParam("number of cell", solParam.NumCell);
     writer.writeSimulationParam("gamma", solParam.Gamma);
     writer.writeSimulationParam("CFL", solParam.CFL);
-    writer.writeSimulationParam("accommodationCoeff",accommodationCoeff);
     solver.solve();
 }

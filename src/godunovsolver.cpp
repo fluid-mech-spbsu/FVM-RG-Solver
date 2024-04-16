@@ -3,6 +3,7 @@
 #include <omp.h>
 void GodunovSolver::solve()
 {
+    lawChecker.setDh(delta_h);
     writePoints(-1);
     double T = 0;
     for(size_t i  = 0; i < solParam.MaxIter; i++)
@@ -61,6 +62,11 @@ void GodunovSolver::solve()
             if(!observerCheck(i))
                 break;
         }
+        //проверка закона сохранения
+        lawCheck(i);
+
+
     }
     writePoints(T*1000000);
 }
+

@@ -3,7 +3,7 @@
 static int counter = 0;
 void BorderConditionCouette::updatePoints(vector<macroParam> &points)
 {
-    bool presEq = 0;
+    bool presEq = 1;
     size_t N = points.size();
     Mixture mixture = points[1].mixture;
     if(presEq)

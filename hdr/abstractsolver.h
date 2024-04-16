@@ -14,6 +14,8 @@
 #include "systemofequation.h"
 #include "riemannsolver.h"
 #include "numeric.h"
+#include "lawchecker.h"
+
 struct AbstractSolver
 {
 public:
@@ -40,6 +42,8 @@ public:
     RiemannSolver* riemannSolver;
 
     Observer* observer;
+
+    LawChecker lawChecker;
 
     Mixture mixture;
 
@@ -78,6 +82,10 @@ protected:
 
     //функция для работы с наблюдателем, выдаёт true если нужно продолжать рассчёт
     bool observerCheck(size_t currentIteration);
+
+    // проверка законов сохранения
+    void rememberParam();
+    bool lawCheck(size_t currentIteration);
 
     // хранит значение макропараметров в каждой ячейке
     vector<macroParam> points;
