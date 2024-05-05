@@ -24,7 +24,7 @@ int main()
     //////////////////////////////////////////////////////////////
     ///////////////////// Border Condition for Couette ///////////
     //////////////////////////////////////////////////////////////
-    int caseType = 0;
+    int caseType = 1;
     double T_up_wall;
     double T_down_wall;
     double velocity_up;
@@ -53,7 +53,7 @@ int main()
 
     BorderConditionCouetteSlip borderConditionCouetteSlip;
     borderConditionCouetteSlip.setWallParameters(velocity_up, velocity_down, T_up_wall, T_down_wall);
-    double accommodationCoeff = 1;
+    double accommodationCoeff = 0.5;
     borderConditionCouetteSlip.setAccommodationCoeff(accommodationCoeff);
 
     //////////////////////////////////////////////////////////////
@@ -87,7 +87,7 @@ int main()
         startParamAr.fractionArray[0] = 1;
         startParamAr.densityArray[0] =  startParamAr.fractionArray[0] * startParamAr.density;
 
-        startParamAr.temp = 1000; //140
+        startParamAr.temp = 273; //140
         startParamAr.velocity_tau = 150;
         startParamAr.velocity_normal = 0;
 
@@ -134,7 +134,7 @@ int main()
     vector<macroParam> startParameters;
     reader.getPoints(startParameters);
 
-    GodunovSolver solver(Ar ,solParam, SystemOfEquationType::couette2Alt , RiemannSolverType::HLLESolver);
+    GodunovSolver solver(Ar ,solParam, SystemOfEquationType::couette1 , RiemannSolverType::HLLESolver);
     double h = 1;
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
@@ -142,7 +142,7 @@ int main()
     solver.setDelta_h(h / (solParam.NumCell - 2));
 
 
-    bool BCSlip = 0;
+    bool BCSlip = 1;
     if(BCSlip)
     {
         solver.setBorderConditions(&borderConditionCouetteSlip); // Slip border
@@ -157,6 +157,7 @@ int main()
         writer.writeSimulationParam("border type", "noSlip");
     }
 
+    writer.writeSimulationParam("density", startParamAr.density);
     writer.writeSimulationParam("number of cell", solParam.NumCell);
     writer.writeSimulationParam("gamma", solParam.Gamma);
     writer.writeSimulationParam("CFL", solParam.CFL);

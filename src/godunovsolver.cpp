@@ -53,6 +53,16 @@ void GodunovSolver::solve()
 
             max = riemannSolver->maxSignalVelocity;
             std::cout << "max wave speed " << max << std::endl;
+            auto maxTemp = [](std::vector<macroParam> vec) -> double{
+                double res = 0;
+                for(int i = 0; i < vec.size(); i++)
+                {
+                    if(res < vec[i].temp)
+                        res = vec[i].temp;
+                }
+                return res;
+            };
+            std::cout << "max Temp " << maxTemp(points) << std::endl;
 
         }
         //проверка точности

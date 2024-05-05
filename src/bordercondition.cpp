@@ -455,7 +455,7 @@ double BorderConditionCouetteSlip::calcVelocityHalf(macroParam p1, size_t compon
     }
     double mu = coeffSolver->shareViscositySimple(point); // was forgotten...
     double T_last = point.temp;
-    double mult = sqrt(2 * M_PI/ m * kB * T_last) * (2 - sigma) * kB * mu *  M / (sigma * UniversalGasConstant * rhoHalf);
+    double mult = sqrt(2 * M_PI/ (m * kB * T_last) ) * (2 - sigma) * kB * mu *  M / (sigma * UniversalGasConstant * rhoHalf);
     double numerator = -mult * p1.velocity_tau / delta_h + wallVelocity;
     double denominator = 1 - mult / delta_h;
     return numerator / denominator;
