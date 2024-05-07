@@ -24,15 +24,15 @@ int main()
     //////////////////////////////////////////////////////////////
     ///////////////////// Border Condition for Couette ///////////
     //////////////////////////////////////////////////////////////
-    int caseType = 1;
+    int caseType = 0;
     double T_up_wall;
     double T_down_wall;
     double velocity_up;
     double velocity_down;
     if(caseType == 0)
     {
-        T_up_wall = 1000;
-        T_down_wall = 1000;
+        T_up_wall = 273;
+        T_down_wall = 273;
         velocity_up = 300;
         velocity_down = 0;
     }
@@ -40,9 +40,10 @@ int main()
     {
         T_up_wall = 273;
         T_down_wall = 273;
-        velocity_up = 300; //300 //1888.84;
+        velocity_up = 1888.84; //300 //1888.84;
         velocity_down = 0;
     }
+
 
     BorderConditionCouette borderConditionCouette;
     borderConditionCouette.setWallParameters(velocity_up, velocity_down, T_up_wall, T_down_wall);
@@ -53,7 +54,7 @@ int main()
 
     BorderConditionCouetteSlip borderConditionCouetteSlip;
     borderConditionCouetteSlip.setWallParameters(velocity_up, velocity_down, T_up_wall, T_down_wall);
-    double accommodationCoeff = 0.5;
+    double accommodationCoeff = 1;
     borderConditionCouetteSlip.setAccommodationCoeff(accommodationCoeff);
 
     //////////////////////////////////////////////////////////////
@@ -83,12 +84,12 @@ int main()
     bool newSolving = true;
     if(newSolving)
     {
-        startParamAr.density = 0.00012786; //0.00012786; // 0.03168;
+        startParamAr.density = 0.000012786; //0.00012786; // 0.03168; // 0.000012786
         startParamAr.fractionArray[0] = 1;
         startParamAr.densityArray[0] =  startParamAr.fractionArray[0] * startParamAr.density;
 
         startParamAr.temp = 273; //140
-        startParamAr.velocity_tau = 150;
+        startParamAr.velocity_tau = 5;
         startParamAr.velocity_normal = 0;
 
         startParamCouetteAr.setBorderCondition(&borderConditionCouette);
@@ -122,7 +123,7 @@ int main()
     solParam.MaxIter     = 10000000; // максимальное кол-во итареций
     solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 1E-5; // точность
+    double precision = 1E-7; // точность
     Observer watcher(precision);
     watcher.setPeriodicity(10000);
 
@@ -142,7 +143,7 @@ int main()
     solver.setDelta_h(h / (solParam.NumCell - 2));
 
 
-    bool BCSlip = 1;
+    bool BCSlip = 0;
     if(BCSlip)
     {
         solver.setBorderConditions(&borderConditionCouetteSlip); // Slip border
