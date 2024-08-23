@@ -7,6 +7,7 @@ struct CoeffSolver
 public:
 	virtual double shareViscositySimple(macroParam currentPoint) = 0;
 	virtual double lambda(macroParam currentPoint) = 0;
+	virtual double lambdaConstPr(macroParam currentPoint) = 0;
 	virtual double lambdaMultiAtom(macroParam currentPoint) = 0;
 	virtual double shareViscosityOmega(Mixture mix, double currentT) = 0;
 	virtual double getOmega22(Mixture mix, double T) = 0;
@@ -20,6 +21,7 @@ struct CoeffSolver1Comp1Temp : public CoeffSolver
 {
 	double shareViscositySimple(macroParam currentPoint);
 	double lambda(macroParam currentPoint);
+	double lambdaConstPr(macroParam currentPoint);
 	double lambdaMultiAtom(macroParam currentPoint);
 	double shareViscosityOmega(Mixture mix, double currentT);
 	double getOmega11(Mixture mix, double T);
@@ -34,6 +36,7 @@ struct CoeffSolver2Comp1Temp : public CoeffSolver1Comp1Temp
 {
 	double shareViscositySimple(macroParam currentPoint);
 	double lambda(macroParam currentPoint);
+	double lambdaConstPr(macroParam currentPoint) { return 0; };
 	double bulcViscositySimple(macroParam currentPoint);
 	double effDiffusion(macroParam currentPoint, size_t component);
 	double binaryDiffusion(macroParam currentPoint, size_t comp1, size_t comp2);

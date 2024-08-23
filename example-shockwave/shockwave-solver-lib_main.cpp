@@ -4,6 +4,7 @@
 #include "observer.h"
 #include <filesystem>
 #include <energycalc.h>
+#include <chrono>
 
 
 std::string GetCurrentWorkingDir(void) {
@@ -69,7 +70,10 @@ int main()
 
 
 	std::vector<MixtureComponent> tmp3 = { methane };
-	Mixture CH4(tmp3);
+	double Pr = 0.702; // Prandtl number for methane
+	// double Pr = 0.724; // Prandtl number for methane
+	Mixture CH4(tmp3, Pr);
+	// Mixture CH4(tmp3);
 
 	//////////////////////////////////////////////////////////////
 	//////////////////// MODEL ///////////////////////////////////
@@ -84,13 +88,13 @@ int main()
 
 	// METHANE SET:
 	double velocity_left = 1710.228; // Mach 3.8
-	double density_left =  0.0006431; // kg/m^3, calculated for atmospheric pressure
+	double density_left =  0.0006431; // (10 Pa) kg/m^3
 	double T_left = 300; // Kelvin
 	double pressure_left = UniversalGasConstant * T_left * density_left / methane.molarMass;
 
 	// from python solver (general relations)
 	double velocity_right = 263.5241; //Mach 3.8 
-	double density_right = 0.004174111;
+	double density_right = 0.004174111; // (10 Pa)
 	double T_right =  781.843; 
 
 	// from python solver (Rankine-Hugoniot boundary conditions)
@@ -100,7 +104,7 @@ int main()
 
 	// from python solver (general relations, only ground state)
 	// double velocity_right = 348.20518;
-	// double density_right = 0.0031589;
+	// double density_right = 0.00031599; // (10 Pa)
 	// double T_right = 976.186; 
 	double pressure_right = UniversalGasConstant * T_right * density_right / methane.molarMass;
 
@@ -142,7 +146,7 @@ int main()
 	////////////////////////////////////////////////////////////
 
 	solverParams solParam;
-	solParam.NumCell = 40 + 2;  // Число расчетных ячеек с учетом двух фиктивных ячеек
+	solParam.NumCell = 60 + 2;  // Число расчетных ячеек с учетом двух фиктивных ячеек
 	// solParam.Gamma       = 1.67;        // Ar
 	// solParam.Gamma       = 1.32;        // O2_O
 	solParam.Gamma = 1.30842;     // CH4, but its also implemented changable in macroparam
@@ -185,9 +189,13 @@ int main()
 	solver.setStartDistribution(&startParamShockwaveCH4);
 
 	std::cout << "Start solving\n";
-	clock_t start = clock();
+	auto start = std::chrono::high_resolution_clock::now();
+	// clock_t start = clock();
 	solver.solve();
-	clock_t end = clock();
-	double seconds = (double)(end - start) / CLOCKS_PER_SEC;
+	auto end = std::chrono::high_resolution_clock::now();
+	// clock_t end = clock();
+	std::chrono::duration<double> elapsed = end - start;
+	double seconds = elapsed.count();
+	// double seconds = (double)(end - start) / CLOCKS_PER_SEC; // ! The time is calculated incorrectly (e.g. the calculation is performed under 15 min, and the timer shows ~ 9 min) 
 	printf("Final time of solution: %f seconds\n", seconds);
 }

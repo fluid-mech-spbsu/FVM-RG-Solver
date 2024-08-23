@@ -21,6 +21,14 @@ double CoeffSolver1Comp1Temp::lambda(macroParam currentPoint)
 	return (75. * pow(kB, 2) * currentPoint.temp) / (32. * currentPoint.mixture.components[0].mass * omega2);
 }
 
+double CoeffSolver1Comp1Temp::lambdaConstPr(macroParam currentPoint)
+{
+	double eta = shareViscosityOmega(currentPoint.mixture, currentPoint.temp);
+	double cp = OneTempApprox.getCP(currentPoint, 0);
+	double Pr = currentPoint.mixture.Prandtl;
+	return cp * eta / Pr;
+}
+
 double CoeffSolver1Comp1Temp::lambdaMultiAtom(macroParam point)
 {
 	/* function to calculate thermal conductivity = kB*T/beta_int * (c_int/c_V)^2 */

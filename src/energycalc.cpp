@@ -360,6 +360,19 @@ double OneTempApproxMultiModes::getCvibr(macroParam& point, size_t component)
 	return Cvibr;
 }
 
+double OneTempApproxMultiModes::getCV(macroParam& point, size_t component)
+{
+	double Ctr = 3. / 2. * kB / point.mixture.mass(component);
+	double Crot = 3. / 2. * kB / point.mixture.mass(component);
+	double Cvibr = getCvibr(point, component);
+	return Ctr + Crot + Cvibr;
+}
+
+double OneTempApproxMultiModes::getCP(macroParam& point, size_t component)
+{
+	return getCV(point, component) + UniversalGasConstant / point.mixture.molarMass(component);
+}
+
 double OneTempApproxMultiModes::getGamma(macroParam& point)
 {
 	/* function to calculate adiabatic index gamma = Cp/Cv */

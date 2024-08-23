@@ -29,10 +29,16 @@ struct MixtureComponent
 struct Mixture
 {
 	Mixture() { NumberOfComponents = 0; };
-	Mixture(std::vector<MixtureComponent> components_);
+	Mixture(std::vector<MixtureComponent> components_) : components(components_) 
+	{ NumberOfComponents = components.size(); 
+	  Prandtl = 0.75; // arbitrary value
+	};
+	Mixture(std::vector<MixtureComponent> components_, double Prandtl_) : components(components_), 
+	  Prandtl(Prandtl_) { NumberOfComponents = components.size(); };
 
 	std::vector<MixtureComponent> components;
 	int NumberOfComponents;
+	double Prandtl; // число Прандтля
 	//... какие-то другие параметры смеси
 	//пример
 

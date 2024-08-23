@@ -62,6 +62,7 @@ print("Initial conditions:")
 print("v_0 = ", velocity_left)
 print("rho_0 = ", density_left)
 print("T_0 = ", T_left)
+print("p_0 = ", pressure)
 print("______________________________________")
 
 ################################################################################################
@@ -82,6 +83,7 @@ ans2 = solver_approx(velocity_left, density_left, T_left)
 print("v_n = ", ans2[0])
 print("rho_n = ", ans2[1])
 print("T_n = ", ans2[2])
+print("p_n = ", ans2[1]*R*ans2[2]/molarMass)
 print("______________________________________")
 
 
@@ -138,12 +140,24 @@ def solver(velocity_left, density_left, T_left):
 
     return ans
 
+# print("Already obtained data on Ma = 3.8 case:")
+# print("v_n =  263.5241")
+# print("rho_n =  0.004174111")
+# print("T_n =  781.843")
+# print("p_n =  ", 0.004174111*R*781.843/molarMass)
+
+# print("Already obtained data on Ma = 3.8 case, ground state:")
+# print("v_n =  348.2051888")
+# print("rho_n = 0.0031599")
+# print("T_n =  976.186")
+# print("p_n =  ", 0.0031599*R*976.186/molarMass)
 
 print("Getting answer via numeric scipy.fsolver:")
 ans = solver(velocity_left, density_left, T_left)
 print("v_n = ", ans[0])
 print("rho_n = ", ans[1])
 print("T_n = ", ans[2])
+print("p_n = ", ans[1]*R*ans[2]/molarMass)
 print("______________________________________")
 
 
@@ -151,13 +165,18 @@ print("______________________________________")
 
 # Initial conditions:
 # v_0 =  1710.2279999999998
-# rho_0 =  0.0006431766819856015
+# rho_0 =  0.0006431766819856015 (p = 100 Pa) |  0.0000643176681985601 (p = 10 Pa)
 # T_0 =  300
 
-# Post-shock conditions:
-# v_n =  263.5241
-# rho_n =  0.004174111
-# T_n =  781.843
+# Post-shock conditions (general case):
+# v_n =  263.5241 (p = 100 Pa) |  263.5241 (p = 10 Pa)
+# rho_n =  0.004174111 (p = 100 Pa) |  0.0004174111 (p = 10 Pa)
+# T_n =  781.843 (p = 100 Pa) |  781.843 (p = 10 Pa)
+
+# Post-shock conditions (ground state case):
+# v_n =   348.2051888 (p = 100 Pa) |  348.2051888 (p = 10 Pa)
+# rho_n = 0.0031599 (p = 100 Pa) |  0.00031599 (p = 10 Pa)
+# T_n =  976.186 (p = 100 Pa) |  976.186 (p = 10 Pa)
 
 # Mach 3
 

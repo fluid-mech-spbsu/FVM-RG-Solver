@@ -65,6 +65,31 @@ void GodunovSolver::solve()
             max = riemannSolver->maxSignalVelocity;
             // std::cout << "energy " << system->getEnergy(30) << std::endl;
             std::cout << "max wave speed " << max << std::endl;
+
+            // double eta_0 = coeffSolver->shareViscosityOmega(points[0].mixture, points[0].temp);
+            // double eta_n = coeffSolver->shareViscosityOmega(points[solParam.NumCell - 1].mixture, points[solParam.NumCell - 1].temp);
+            double zeta_0 = coeffSolver->bulkViscosityMultiAtom(points[0]);
+            double zeta_n = coeffSolver->bulkViscosityMultiAtom(points[solParam.NumCell - 1]);
+            // double lambda_0 = coeffSolver->lambdaMultiAtom(points[0]);
+            // double lambdaPr_0 = coeffSolver->lambdaConstPr(points[0]);
+            // double lambda_n = coeffSolver->lambdaMultiAtom(points[solParam.NumCell - 1]);
+            // double lambdaPr_n = coeffSolver->lambdaConstPr(points[solParam.NumCell - 1]);
+            // double cp_0 = energyCalculator->getCP(points[0], 0);
+            // double cp_n = energyCalculator->getCP(points[solParam.NumCell - 1], 0);
+
+            // std::cout << "shear viscosity at initial cell: " << eta_0 << std::endl;
+            // std::cout << "shear viscosity at last cell: " << eta_n << std::endl;
+            std::cout << "bulk viscosity at initial cell: " << zeta_0 << std::endl;
+            std::cout << "bulk viscosity at last cell: " << zeta_n << std::endl;
+            // std::cout << "heat conductivity at initial cell: " << lambda_0 << std::endl;
+            // std::cout << "heat conductivity at initial cell, const Pr " << lambdaPr_0 << std::endl;
+            // std::cout << "heat conductivity at last cell: " << lambda_n << std::endl;
+            // std::cout << "heat conductivity at last cell, const Pr " << lambdaPr_n << std::endl;
+            // std::cout << "specific heat at const pressure at initial cell: " << cp_0 << std::endl;
+            // std::cout << "specific heat at const pressure at last cell: " << cp_n << std::endl;
+            // std::cout << "Pr at initial cell:" << cp_0 * eta_0 / lambda_0 << std::endl;
+            // std::cout << "Pr at last cell:" << cp_n * eta_n / lambda_n << std::endl;
+
         }
         //проверка точности
         if(isObserverWatching)

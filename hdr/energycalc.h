@@ -13,6 +13,8 @@ struct EnergyCalc
 	virtual double getEntalpTotal(macroParam& point) { return getEntalp(point, 0) + getEntalp(point, 1); };
 	virtual double getEntalp(macroParam& point, size_t component) = 0;
 	virtual double getGamma(macroParam& point) { return 0; };
+	virtual double getCV(macroParam& point, size_t component) { return 0; };
+	virtual double getCP(macroParam& point, size_t component) { return 0; };
 };
 
 struct OneTempApprox : public EnergyCalc
@@ -21,6 +23,8 @@ struct OneTempApprox : public EnergyCalc
 	double calcEnergy(macroParam& point);
 	double getEntalpTotal(macroParam& point) { return getEntalp(point, 0) + getEntalp(point, 1); };
 	double getEntalp(macroParam& point, size_t component);
+	double getCV(macroParam& point, size_t component) {return 0;};
+	double getCP(macroParam& point, size_t component) {return 0;};
 
 private:
 	double getTrRotEnegry(macroParam& point, size_t component);
@@ -39,6 +43,8 @@ struct OneTempApproxMultiModes : public EnergyCalc
 	OneTempApproxMultiModes() {};
 
 	double getCvibr(macroParam& point, size_t component);
+	double getCV(macroParam& point, size_t component);
+	double getCP(macroParam& point, size_t component);
 	double calcEnergy(macroParam& point);
 	double getGamma(macroParam& point);
 

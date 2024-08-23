@@ -1,11 +1,11 @@
 #include "mixture.h"
 #include "global.h"
 
-Mixture::Mixture(std::vector<MixtureComponent> components_)
-{
-	components = components_;
-	NumberOfComponents = components.size();
-}
+// Mixture::Mixture(std::vector<MixtureComponent> components_)
+// {
+// 	components = components_;
+// 	NumberOfComponents = components.size();
+// }
 
 double Mixture::molarMass()
 {
