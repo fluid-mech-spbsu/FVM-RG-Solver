@@ -24,7 +24,7 @@ int main()
     //////////////////////////////////////////////////////////////
     ///////////////////// Border Condition for Couette ///////////
     //////////////////////////////////////////////////////////////
-    int caseType = 0;
+    int caseType = 1;
     double T_up_wall;
     double T_down_wall;
     double velocity_up;
@@ -40,7 +40,7 @@ int main()
     {
         T_up_wall = 273;
         T_down_wall = 273;
-        velocity_up = 1888.84; //300 //1888.84;
+        velocity_up = 1888.84;
         velocity_down = 0;
     }
 
@@ -64,7 +64,7 @@ int main()
     argon.name = "Ar";
     argon.molarMass = 0.039948;
     argon.mass = 6.633521356992E-26;
-    argon.epsilonDevK = 1.8845852298E-21/kB; //! Mistake
+    argon.epsilonDevK = 1.8845852298E-21/kB;
     argon.numberAtoms = 1;
     argon.sigma = 3.33E-10;
 
@@ -84,7 +84,7 @@ int main()
     bool newSolving = true;
     if(newSolving)
     {
-        startParamAr.density = 0.000012786; //0.00012786; // 0.03168; // 0.000012786
+        startParamAr.density = 0.000012786; //0.00012786; // 0.03168;
         startParamAr.fractionArray[0] = 1;
         startParamAr.densityArray[0] =  startParamAr.fractionArray[0] * startParamAr.density;
 
@@ -117,17 +117,18 @@ int main()
     //////////////////////////////////////////////////////////////
 
     solverParams solParam;
-    solParam.NumCell     = 102;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 67;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;   // Ar
     solParam.CFL      = 0.9;    // Число Куранта 0.9
     solParam.MaxIter     = 10000000; // максимальное кол-во итареций
     solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 1E-7; // точность
+    double precision = 1E-6; // точность
     Observer watcher(precision);
     watcher.setPeriodicity(10000);
 
 
+    // DataWriter writer(outputData);
     DataWriter writer(outputData);
     DataReader reader(outputData + "\prev_data");
 
@@ -135,13 +136,21 @@ int main()
     vector<macroParam> startParameters;
     reader.getPoints(startParameters);
 
-    GodunovSolver solver(Ar ,solParam, SystemOfEquationType::couette1 , RiemannSolverType::HLLESolver);
+
+    double viscocity_argon = 2.2724e-05;
+    double pressure = startParamAr.density * UniversalGasConstant * startParamAr.temp / argon.molarMass;
+    double MFP = viscocity_argon / pressure * sqrt(M_PI * UniversalGasConstant * startParamAr.temp / argon.molarMass); // mean free path length for argon
+    std::cout << "mean free path: " << MFP << std::endl;
+
+    GodunovSolver solver(Ar, solParam, SystemOfEquationType::couette1, RiemannSolverType::HLLESolver);
     double h = 1;
+
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
     solver.setObserver(&watcher);
     solver.setDelta_h(h / (solParam.NumCell - 2));
 
+    
 
     bool BCSlip = 0;
     if(BCSlip)

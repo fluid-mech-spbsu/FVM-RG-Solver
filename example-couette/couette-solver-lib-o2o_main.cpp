@@ -10,7 +10,6 @@ std::string GetCurrentWorkingDir( void ) {
 
    std::string res = parentDir.string() + "/FVM-RG-Solver/example-couette";
 
-    // std::string res = parentDir.string() + "/main/example-couette"; // !normal case using qt
     return res;
 //    return currentWorkingDir; // without qt
 //    return currentWorkingDir.string();
