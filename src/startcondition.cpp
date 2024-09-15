@@ -10,8 +10,7 @@ void UniformDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].temp = example.temp;
 			points[i].fractionArray = example.fractionArray;
 			points[i].density = example.density;
-			points[i].pressure = points[i].density * UniversalGasConstant * example.temp / example.mixture.molarMass(example.fractionArray);
-			//points[i].density = startParam.pressure * mixture.molarMass()/(UniversalGasConstant * startParam.temp);
+			points[i].pressure = points[i].density * R_U * example.temp / example.mixture.molarMass(example.fractionArray);
 			points[i].densityArray = example.densityArray;
 			points[i].velocity_tau = example.velocity_tau;
 			points[i].velocity_normal = example.velocity_normal;
@@ -38,8 +37,7 @@ void UniformDistributionBorder::setStartDistribution(vector<macroParam>& points)
 		points[i].fractionArray = example.fractionArray;
 		points[i].density = example.density;
 
-		points[i].pressure = points[i].density * UniversalGasConstant * example.temp / example.mixture.molarMass(example.fractionArray);
-		//points[i].density = startParam.pressure * mixture.molarMass()/(UniversalGasConstant * startParam.temp);
+		points[i].pressure = points[i].density * R_U * example.temp / example.mixture.molarMass(example.fractionArray);
 		points[i].densityArray = example.densityArray;
 		points[i].velocity_tau = example.velocity_tau;
 		points[i].velocity_normal = example.velocity_normal;
@@ -65,7 +63,7 @@ void GapDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].velocity_tau = left.velocity_tau;
 			points[i].velocity_normal = left.velocity_normal;
 			points[i].velocity = left.velocity;
-			points[i].temp = points[i].pressure * points[i].mixture.molarMass() / points[i].density / UniversalGasConstant;
+			points[i].temp = points[i].pressure * points[i].mixture.molarMass(left.fractionArray) / points[i].density / R_U;
 		}
 		for (size_t i = points.size() / 2 + 1; i < points.size(); i++)
 		{
@@ -77,7 +75,7 @@ void GapDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].velocity_tau = right.velocity_tau;
 			points[i].velocity_normal = right.velocity_normal;
 			points[i].velocity = right.velocity;
-			points[i].temp = points[i].pressure * points[i].mixture.molarMass() / points[i].density / UniversalGasConstant;
+			points[i].temp = points[i].pressure * points[i].mixture.molarMass(right.fractionArray) / points[i].density / R_U;
 		}
 	}
 	else {
@@ -91,7 +89,7 @@ void GapDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].velocity_tau = left.velocity_tau;
 			points[i].velocity_normal = left.velocity_normal;
 			points[i].velocity = left.velocity;
-			points[i].temp = points[i].pressure * points[i].mixture.molarMass() / points[i].density / UniversalGasConstant;
+			points[i].temp = points[i].pressure * points[i].mixture.molarMass(left.fractionArray) / points[i].density / R_U;
 		}
 		for (size_t i = 1; i < points.size(); i++)
 		{
@@ -103,7 +101,7 @@ void GapDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].velocity_tau = right.velocity_tau;
 			points[i].velocity_normal = right.velocity_normal;
 			points[i].velocity = right.velocity;
-			points[i].temp = points[i].pressure * points[i].mixture.molarMass() / points[i].density / UniversalGasConstant;
+			points[i].temp = points[i].pressure * points[i].mixture.molarMass(right.fractionArray) / points[i].density / R_U;
 		}
 	}
 }
@@ -125,7 +123,7 @@ void ShockwaveGapDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].velocity_tau = left.velocity_tau;
 			points[i].velocity_normal = left.velocity_normal;
 			points[i].velocity = left.velocity;
-			points[i].temp = points[i].pressure * points[i].mixture.molarMass() / points[i].density / UniversalGasConstant;
+			points[i].temp = points[i].pressure * points[i].mixture.molarMass(left.fractionArray) / points[i].density / R_U;
 			points[i].gamma = energyCalculator->getGamma(points[i]);
 		}
 		for (size_t i = points.size() / 2 + 1; i < points.size(); i++)
@@ -138,7 +136,7 @@ void ShockwaveGapDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].velocity_tau = right.velocity_tau;
 			points[i].velocity_normal = right.velocity_normal;
 			points[i].velocity = right.velocity;
-			points[i].temp = points[i].pressure * points[i].mixture.molarMass() / points[i].density / UniversalGasConstant;
+			points[i].temp = points[i].pressure * points[i].mixture.molarMass(right.fractionArray) / points[i].density / R_U;
 			points[i].gamma = energyCalculator->getGamma(points[i]);
 		}
 	}
@@ -153,7 +151,7 @@ void ShockwaveGapDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].velocity_tau = left.velocity_tau;
 			points[i].velocity_normal = left.velocity_normal;
 			points[i].velocity = left.velocity;
-			points[i].temp = points[i].pressure * points[i].mixture.molarMass() / points[i].density / UniversalGasConstant;
+			points[i].temp = points[i].pressure * points[i].mixture.molarMass(left.fractionArray) / points[i].density / R_U;
 			points[i].gamma = energyCalculator->getGamma(points[i]);
 		}
 		for (size_t i = 1; i < points.size(); i++)
@@ -166,7 +164,7 @@ void ShockwaveGapDistribution::setStartDistribution(vector<macroParam>& points)
 			points[i].velocity_tau = right.velocity_tau;
 			points[i].velocity_normal = right.velocity_normal;
 			points[i].velocity = right.velocity;
-			points[i].temp = points[i].pressure * points[i].mixture.molarMass() / points[i].density / UniversalGasConstant;
+			points[i].temp = points[i].pressure * points[i].mixture.molarMass(right.fractionArray) / points[i].density / R_U;
 			points[i].gamma = energyCalculator->getGamma(points[i]);
 		}
 	}

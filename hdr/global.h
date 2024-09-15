@@ -1,3 +1,12 @@
+/**
+ * @file global.h
+ * @brief Definitions of global constants and some basic structures
+ * 
+ * This file contains the definitions of various global constants used throughout the solver,
+ * as well as utility structures and classes, such as solverParameters structure and Mixture class, which
+ * is a and vector class wrapper.
+ */
+
 #pragma once
 
 #include <vector>
@@ -6,58 +15,39 @@
 
 using namespace std;
 
-const double Nav(6.02214129e23);
-const double UniversalGasConstant = 8.3144598;
-const double kB = 1.38064852e-23;    // J/K
-const double kBE = 8.617e-5;       // const Bolz elVolt*K
-static const double massaCO2 = 7.306e-26; // m_CO_2
-static const double gasConst = kB / massaCO2;
-static const double e100 = 2.757135054E-20;
-static const double e010 = 1.32493446E-20;
-static const double e001 = 4.66607366E-20;
-static const double De = 8.83859e-19;
+// Main constants
 
-static const double hPlank = 6.62559e-34;
-static const double clight = 2.99792458e8;
-static const double hc = hPlank * clight; // hc = ww!!!
-static const double o2[3] = { 1345.04e2, 667.25e2, 2361.71e2 }; // 1/m!Herzberg
-static const double ox[7] = { -3.63e2, 3.44e2, -19.28e2, -0.635e2, -12.51e2, -12.56e2, 0.775e2 }; // 1/m!Herzberg ox11, ox12, ox13, ox22, ox23, ox33, oxll
-static const double sigmaCO2CO2_mix2 = 3.763e-10; // collision diameter in m
-static const double alpha1_CO2 = 17.5 / sigmaCO2CO2_mix2;
-static const double a_SSH[3] = { 1. / 2., 8. / 11., 1. / 2. };
-static const double a1_SSH[3] = { 8. / 11., 1. / 2., 3. / 11. };
+const double N_A = 6.02214076E23; /**< Avogadro's number (1/mol) */
+const double R_U = 8.3144598;     /**< Universal Gas constant (J/mol/K) */
+const double kB = 1.38064852e-23; /**< Boltzmann's constant (J/K) */
+const double kBE = 8.617e-5;      /**< Boltzmann's constant (elVolt*K) */
 
-static const double masRed_CO2_CO2 = massaCO2 / 2.;
-static const double m[3] = { 1.46e-26, 1.338e-26, 1.46e-26 };
-static const double ww = 1.60219e-21 / 8065.47; // if you need energy in J (not in meV) 1.60219e-19 / 8065.47
-static const double ni[3] = { o2[0] * ww / hPlank, o2[1] * ww / hPlank, o2[2] * ww / hPlank };
+static const double hPlank = 6.62607015e-34; /**< Planck's constant (J*s) */
+static const double clight = 2.99792458e8;   /**< Speed of light (m/s) */
+static const double hc = hPlank * clight; 
 
-
-const  double ZettaInf = 20.39;
-extern double sigma;
-extern double epsilonDevK;
-extern double molMass;
-extern double mass;
-
+/**
+ * @brief Parameters for the solver
+ * 
+ * This structure holds various parameters used in the solver.
+ */
 struct solverParams
-{
-	int NumCell = 0;    // Число расчтеных ячеек
-	double t_fin = 0;    // Время выхода из решения
-	double Ma = 0;    // Число маха
-	double Gamma = 0;    // Показатель адиабаты
-	double CFL = 0;    // Число Куранта
-	double lambda = 0;    // Длина свободного пробега
-	int lambdaSol = 0;    // Кол-во длин пробега для расчета
-	int PlotIter = 0;    // Кол-во итераци, через которое отрисывыввается график
-	int MaxIter = 10000000; // максимальное кол-во шагов по времени
-	int typePlot = 0;    // Тип отображения на графике :
-	// 0 - абс. давлени
-	// 1 - абс. плотноть
-	// 2 - абс. скорость
-	// 3 - абс. температура
-	int typeRightBorder = 1;//  Тип граничного условия справа
-	int typeLeftBorder = 1; //  Тип граничного условия слева
+{ 
+    int NumCell = 0;          /**< Number of computational cells */
+    double Ma = 0;            /**< Mach number */
+    double Gamma = 0;         /**< Adiabatic index */
+    double CFL = 0;           /**< Courant number */
+    double lambda = 0;        /**< Mean free path length */
+    int MaxIter = 10000000;   /**< Maximum number of time steps */
 };
+
+/**
+ * @brief Additional wrapper class on vector 
+ * 
+ * This class is a wrapper on std::vector<double> with additional methods. Currently, it is not used in the solver.
+ */
+
+/*
 class Matrix
 {
 private:
@@ -105,11 +95,11 @@ public:
 	}
 	double first()
 	{
-		return data.front(); // changed
+		return data.front(); 
 	}
 	double last()
 	{
-		return data.back(); // changed
+		return data.back();
 	}
 	void push_back(double val)
 	{
@@ -117,7 +107,7 @@ public:
 	}
 	void push_front(double val)
 	{
-		data.insert(data.begin(), val);  // changed
+		data.insert(data.begin(), val); 
 	}
 	void removeLast()
 	{
@@ -125,7 +115,7 @@ public:
 	}
 	void removeFirst()
 	{
-		data.erase(data.begin()); // changed
+		data.erase(data.begin());
 	}
 	void resize(int i)
 	{
@@ -217,3 +207,4 @@ public:
 		return output;
 	}
 };
+*/

@@ -1,6 +1,5 @@
 #include "energycalc.h"
 #include <iostream>
-//#include "nn.h"
 #include <time.h> 
 
 double OneTempApprox::calcEnergy(macroParam& point)
@@ -107,113 +106,44 @@ double OneTempApprox::Zvibr(macroParam& point, size_t component)
 	return sum;
 }
 
+double OneTempApprox::getCV(macroParam& point, size_t component)
+{
+	// monatomic gas
+	double Tr = 3. / 2. * kB / point.mixture.components[component].mass;
+	return Tr;
+}
+
+double OneTempApprox::getCP(macroParam& point, size_t component)
+{
+	double Cv = getCV(point, component);
+	return Cv + R_U / point.mixture.components[component].molarMass;
+}
+
+double OneTempApprox::getGamma(macroParam& point)
+{
+	// monatomic gas
+	double Cv = getCV(point, 0);
+	double Cp = getCP(point, 0);
+	double gamma = Cp / Cv;
+	return gamma;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-/*  ---------- Energy Calculation For Methane (CH4)  ---------- */
-/*  could be potentially extended for any molecula with known:
-*   1. number of degenerative vibrational modes (numberModes);
-*   2. number of vibrational energy levels for each mode (numberVibrLvlByMode);
-*   3. degrees of degeneraticy for each mode (dByMode).
-*/
-
 double OneTempApproxMultiModes::calcEnergy(macroParam& point)
 {
-	//clock_t start = clock();
 
 	double UTrRot = getTrRotEnegry(point, 0);
 	double UVibr = getVibrEnergy(point, 0);
 	double teorE = point.density * (UTrRot + UVibr) + point.density * 0.5 * pow(point.velocity, 2);
 
-	/*
-	double E;
-	if (point.pressure < P_MIN || point.pressure > P_MAX || point.temp < T_MIN || point.temp > T_MAX) {
-		double UTrRot = getTrRotEnegry(point, 0);
-		double UVibr = getVibrEnergy(point, 0);
-		double teorE = point.density * (UTrRot + UVibr) + point.density * 0.5 * pow(point.velocity, 2);
-		E = teorE;
-	} else {
-		double inputs[1][2];
-		if (point.pressure >= P_MIN) {
-			inputs[0][0] = (point.pressure - P_MIN) / (P_MAX - P_MIN);
-			inputs[0][1] = (point.temp - T_MIN) / (T_MAX - T_MIN);
-		}
-		else {
-			inputs[0][0] = 0.;
-			inputs[0][1] = (point.temp - T_MIN) / (T_MAX - T_MIN);
-		}
-
-		double layer1out[1][50];
-		for (int i = 0; i < 50; i++) {
-			layer1out[0][i] =
-				tanh(
-					(inputs[0][0] * enlayers0weights[0][i])
-					+ (inputs[0][1] * enlayers0weights[1][i])
-					+ enlayers0bias[0][i]
-				);
-		}
-
-		double layer2out = 0.;
-		for (int i = 0; i < 50; i++) {
-			double tmp = layer1out[0][i];
-			layer2out += tmp * enlayers1weights[i][0];
-		}
-		layer2out += enlayers1bias;
-		double nnE = 1000 * layer2out + point.density * 0.5 * pow(point.velocity, 2);
-		E = nnE;
-	}
-
-	double inputs[1][2] = {
-		(point.pressure - P_MIN) / (P_MAX - P_MIN),
-		(point.temp - T_MIN) / (T_MAX - T_MIN)
-	};
-
-	double layer1out[1][50];
-	for (int i = 0; i < 50; i++) {
-		layer1out[0][i] =
-			tanh(
-				(inputs[0][0] * enlayers0weights[0][i])
-				+ (inputs[0][1] * enlayers0weights[1][i])
-				+ enlayers0bias[0][i]
-			);
-	}
-
-	double layer2out = 0.;
-	for (int i = 0; i < 50; i++) {
-		double tmp = layer1out[0][i];
-		layer2out += tmp * enlayers1weights[i][0];
-	}
-	layer2out += enlayers1bias; // in kJ
-	double nnE = 1000 * layer2out + point.density * 0.5 * pow(point.velocity, 2);
-
-	if (point.temp == 300.) {
-	std::cout << "-------------------------" << std::endl;
-	std::cout << "p=" << point.pressure << std::endl;
-	std::cout << "T=" << point.temp << std::endl;
-	std::cout << "rho=" << point.density << std::endl;
-	std::cout << "v=" << point.velocity << std::endl;
-	std::cout << "scaled p =" << inputs[0][0] << std::endl;
-	std::cout << "scaled T =" << inputs[0][1] << std::endl;
-	std::cout << "teoretical E = " << teorE << std::endl;
-	std::cout << "nn E = " << nnE << std::endl;
-	double Ctr = 3. / 2. * kB / point.mixture.mass(0);
-	double Crot = 3. / 2. * kB / point.mixture.mass(0);
-	double Cvibr = getCvibr(point, 0);
-	double Cv = Ctr + Crot + Cvibr;
-	std::cout << "Cv=" << Cv << std::endl;
-	std::cout << "-------------------------" << std::endl;
-}
-
-	clock_t end = clock();
-	double seconds = (double)(end - start) / CLOCKS_PER_SEC;
-	printf("Final time of energyCalc: %f seconds\n", seconds);
-	*/
 	return teorE;
 }
 
 double OneTempApproxMultiModes::getTrRotEnegry(macroParam& point, size_t component)
 {
-	double n = Nav * point.density / point.mixture.components[component].molarMass;
+	double n = N_A * point.density / point.mixture.components[component].molarMass;
 	double Utr = 3. / 2. * kB * point.temp * n / point.density;
 	double Urot = 3. / 2. * kB * point.temp / point.mixture.components[component].mass; // because methane has 3 degrees of freedom
 	return Utr + Urot;
@@ -253,21 +183,6 @@ double OneTempApproxMultiModes::avgVibrEnergy(macroParam& point, size_t componen
 	}
 	return sum;
 }
-
-/* // don't use yet, but might be useful
-double OneTempApproxMultiModes::vibrEnergyLvl(int lvl1, int lvl2, int lvl3, int lvl4, macroParam& point, size_t component)
-{
-	MixtureComponent molecula = point.mixture.components[component];
-
-	double result = hc * (
-		molecula.omega_eByMode[0] * (lvl1 + molecula.dByMode[0] / 2.) +
-		molecula.omega_eByMode[1] * (lvl2 + molecula.dByMode[1] / 2.) +
-		molecula.omega_eByMode[2] * (lvl3 + molecula.dByMode[2] / 2.) +
-		molecula.omega_eByMode[3] * (lvl4 + molecula.dByMode[3] / 2.)
-		);
-
-	return result;
-}*/
 
 
 double OneTempApproxMultiModes::Zvibr(macroParam& point, size_t component)
@@ -370,7 +285,7 @@ double OneTempApproxMultiModes::getCV(macroParam& point, size_t component)
 
 double OneTempApproxMultiModes::getCP(macroParam& point, size_t component)
 {
-	return getCV(point, component) + UniversalGasConstant / point.mixture.molarMass(component);
+	return getCV(point, component) + R_U / point.mixture.molarMass(component);
 }
 
 double OneTempApproxMultiModes::getGamma(macroParam& point)
@@ -383,6 +298,6 @@ double OneTempApproxMultiModes::getGamma(macroParam& point)
 	double Cv_vibr = getCvibr(point, component);
 	double Cv = Cv_tr + Cv_rot + Cv_vibr;
 
-	double gamma = (UniversalGasConstant / point.mixture.molarMass(component) + Cv) / Cv;
+	double gamma = (R_U / point.mixture.molarMass(component) + Cv) / Cv;
 	return gamma;
 }

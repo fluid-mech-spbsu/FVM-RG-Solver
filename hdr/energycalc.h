@@ -23,8 +23,9 @@ struct OneTempApprox : public EnergyCalc
 	double calcEnergy(macroParam& point);
 	double getEntalpTotal(macroParam& point) { return getEntalp(point, 0) + getEntalp(point, 1); };
 	double getEntalp(macroParam& point, size_t component);
-	double getCV(macroParam& point, size_t component) {return 0;};
-	double getCP(macroParam& point, size_t component) {return 0;};
+	double getCV(macroParam& point, size_t component);
+	double getCP(macroParam& point, size_t component);
+	double getGamma(macroParam& point);
 
 private:
 	double getTrRotEnegry(macroParam& point, size_t component);

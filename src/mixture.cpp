@@ -1,19 +1,13 @@
+/**
+ * @file mixture.cpp
+ * @brief Implementation of the Mixture class functions.
+ * 
+ * This file contains the implementation of various functions for the Mixture class, 
+ * including calculations for molar mass, mass, and other properties of the mixture components.
+ */
+
 #include "mixture.h"
 #include "global.h"
-
-// Mixture::Mixture(std::vector<MixtureComponent> components_)
-// {
-// 	components = components_;
-// 	NumberOfComponents = components.size();
-// }
-
-double Mixture::molarMass()
-{
-	double sum = 0;
-	for (size_t i = 0; i < NumberOfComponents; i++)
-		sum += components[i].molarMass;
-	return sum;
-}
 
 double Mixture::molarMass(std::vector<double> y_c)
 {
@@ -23,10 +17,8 @@ double Mixture::molarMass(std::vector<double> y_c)
 		double M_c = molarMass(j);
 		sum += y_c[j] / M_c;
 	}
-	double M = 1 / sum;
-	return M;
+	return 1 / sum;
 }
-
 
 double Mixture::molarMass(size_t i)
 {

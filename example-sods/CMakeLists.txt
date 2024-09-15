@@ -5,6 +5,6 @@ project(${PROJECT_MAIN} LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-add_executable("Couette-solver" couette-solver-main.cpp)
-target_link_libraries("Couette-solver" FVM-RG-Solver)
+add_executable("Sods-solver" sods-solver-main.cpp)
+target_link_libraries("Sods-solver" FVM-RG-Solver)
 

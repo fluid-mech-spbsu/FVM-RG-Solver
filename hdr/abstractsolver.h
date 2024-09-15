@@ -100,7 +100,8 @@ protected:
 	double delta_h = 0;
 
 	// вектор в котором хранятся временные шаги
-	Matrix timeSolvind;
+	// Matrix timeSolvind;
+	vector<double> timeSolvind;
 
 	//записывать ли данные в файл ?
 	bool isWriteData = false;

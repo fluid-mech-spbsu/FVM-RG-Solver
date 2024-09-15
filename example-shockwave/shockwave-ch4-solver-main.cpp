@@ -1,4 +1,3 @@
-//#include "hllcsolver.h"
 #include "godunovsolver.h"
 #include "DataWriter.h"
 #include "observer.h"
@@ -23,16 +22,16 @@ int main()
 	std::cout << "Current directory is: " << outputData << std::endl;
 
 	///////////////////////////////////////////////////////////////
-	///////////////////// Molecula data //////////////////////////
+	///////////////////// Particle data //////////////////////////
 	///////////////////////////  CH4  ////////////////////////////
-	///
+	
 	MixtureComponent methane;
 	methane.name = "CH4";
 	methane.molarMass = 0.016043;
 	methane.mass = 2.663732314e-26;
-	methane.epsilonDevK = 151.4; // have written in .doc file on drive // epsilon/kB
+	methane.epsilonDevK = 151.4; 
 	methane.Zinf = 89.15;
-	methane.sigma = 3.737e-10; // m // another data from the paper rot. relaxation: 3.65e-10
+	methane.sigma = 3.737e-10; // m. other option - 3.65e-10
 	methane.D_diss = 3668582.3189; // m^-1!, converted from 438.86 kJ/mol
 	methane.numberAtoms = 5;
 	methane.numberOfModes = 4;
@@ -66,14 +65,13 @@ int main()
 	// methane.possibleVibrInds = {{0, 0, 0, 0}}; // only ground state
 
 	double viscocity_methane = 1.1123e-05; // for below set sonditions
-	// double viscocity_argon = 2.2724e-05; // for below set sonditions
 
 
-	std::vector<MixtureComponent> tmp3 = { methane };
+	std::vector<MixtureComponent> tmp = { methane };
 	double Pr = 0.702; // Prandtl number for methane
 	// double Pr = 0.724; // Prandtl number for methane
-	Mixture CH4(tmp3, Pr);
-	// Mixture CH4(tmp3);
+	Mixture CH4(tmp, Pr);
+	// Mixture CH4(tmp);
 
 	//////////////////////////////////////////////////////////////
 	//////////////////// MODEL ///////////////////////////////////
@@ -83,30 +81,27 @@ int main()
 	///////////////////////////////////////////////////////////////
 	///////////////// Border Condition for Shock Wave ////////////
 	////////////////////////// CH4 ///////////////////////////////
-	///
-	// рассматриваем уравнения граничных условий, 0 = left,	n = right.
-
-	// METHANE SET:
+	
 	double velocity_left = 1710.228; // Mach 3.8
-	double density_left =  0.0006431; // (10 Pa) kg/m^3
-	double T_left = 300; // Kelvin
-	double pressure_left = UniversalGasConstant * T_left * density_left / methane.molarMass;
+	double density_left =  0.000643177; // (100 Pa) kg/m^3
+	double T_left = 300; // K
+	double pressure_left = R_U * T_left * density_left / methane.molarMass; // 100 Pa
 
 	// from python solver (general relations)
-	double velocity_right = 263.5241; //Mach 3.8 
-	double density_right = 0.004174111; // (10 Pa)
+	double velocity_right = 263.5241; 
+	double density_right = 0.004174111; 
 	double T_right =  781.843; 
 
 	// from python solver (Rankine-Hugoniot boundary conditions)
-	// double velocity_right = 363.894;
-	// double density_right = 0.0030228;
-	// double T_right = 1054.0323; 
+	// double velocity_right = 331.0986;
+	// double density_right = 0.00332221;
+	// double T_right = 942.9575622; 
 
 	// from python solver (general relations, only ground state)
 	// double velocity_right = 348.20518;
-	// double density_right = 0.00031599; // (10 Pa)
+	// double density_right = 0.00031599; //
 	// double T_right = 976.186; 
-	double pressure_right = UniversalGasConstant * T_right * density_right / methane.molarMass;
+	double pressure_right = R_U * T_right * density_right / methane.molarMass;
 
 	BorderConditionShockwave borderConditionShockwave;
 	borderConditionShockwave.setBorderParameters(
@@ -115,6 +110,7 @@ int main()
 	);
 
 	borderConditionShockwave.setEnergyCalculator(&oneTempApproxMultiModes);
+
 	//////////////////////////////////////////////////////////////
 	////////////////// Start param for Shockwave /////////////////
 	////////////////////////////  CH4  ///////////////////////////
@@ -141,17 +137,16 @@ int main()
 
 	startParamShockwaveCH4.setDistributionParameter(leftStartParam, rightStartParam);
 	startParamShockwaveCH4.setEnergyCalculator(&oneTempApproxMultiModes);
+
 	//////////////////////////////////////////////////////////////
 	///////////////// Solver param for Shockwave ////////////////
 	////////////////////////////////////////////////////////////
 
 	solverParams solParam;
-	solParam.NumCell = 60 + 2;  // Число расчетных ячеек с учетом двух фиктивных ячеек
-	// solParam.Gamma       = 1.67;        // Ar
-	// solParam.Gamma       = 1.32;        // O2_O
+	solParam.NumCell = 45 + 2;  // Число расчетных ячеек с учетом двух фиктивных ячеек
 	solParam.Gamma = 1.30842;     // CH4, but its also implemented changable in macroparam
 	solParam.CFL = 0.9;         // Число Куранта
-	solParam.MaxIter = 2000;  // максимальное кол-во итераций
+	solParam.MaxIter = 4000;  // максимальное кол-во итераций
 	solParam.Ma = 3.8;			// Число Маха, сейчас не влияет на решатель, просто формальность
 
 	double precision = 1E-6;   // точность
@@ -167,15 +162,13 @@ int main()
 	reader.getPoints(startParameters);
 
 
-	// GodunovSolver solver(Ar ,solParam, SystemOfEquationType::shockwave1, RiemannSolverType::HLLESolver);
 	GodunovSolver solver(CH4, solParam, SystemOfEquationType::shockwave2, RiemannSolverType::HLLESolver);
 
 	solver.setOutputDirectory(outputData);
 
-	// double MFP = viscocity_argon / pressure_left * sqrt(M_PI * UniversalGasConstant * T_left / argon.molarMass); // mean free path length for argon
-	double MFP = viscocity_methane / pressure_left * sqrt(M_PI * UniversalGasConstant * T_left / methane.molarMass); // mean free path length for methane
+	double MFP = viscocity_methane / pressure_left * sqrt(M_PI * R_U * T_left / (2 * methane.molarMass)); // mean free path length for methane
 	std::cout << "mean free path: " << MFP << std::endl;
-	double h = 30 * MFP; // m
+	double h = 35 * MFP; // m
 	std::cout << "considering h = MFP * " << h / MFP << std::endl;
 	writer.setDelta_h(h / (solParam.NumCell - 2));
 	solver.setWriter(&writer);
@@ -185,17 +178,13 @@ int main()
 	solver.setEnergyCalculator(&oneTempApproxMultiModes);
 	solver.setBorderConditions(&borderConditionShockwave);
 
-	// solver.setStartDistribution(&startParamShockwaveAr);
 	solver.setStartDistribution(&startParamShockwaveCH4);
 
 	std::cout << "Start solving\n";
 	auto start = std::chrono::high_resolution_clock::now();
-	// clock_t start = clock();
 	solver.solve();
 	auto end = std::chrono::high_resolution_clock::now();
-	// clock_t end = clock();
 	std::chrono::duration<double> elapsed = end - start;
 	double seconds = elapsed.count();
-	// double seconds = (double)(end - start) / CLOCKS_PER_SEC; // ! The time is calculated incorrectly (e.g. the calculation is performed under 15 min, and the timer shows ~ 9 min) 
 	printf("Final time of solution: %f seconds\n", seconds);
 }

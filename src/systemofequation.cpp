@@ -1,7 +1,6 @@
 #include <iostream>
 #include <omp.h>
 #include <functional>
-// #include "nn.h"
 // #include <time.h>
 #include "systemofequation.h"
 #include "numeric.h"
@@ -112,8 +111,6 @@ double Couette2::getPressure(size_t i)
 {
 	double rho = getDensity(i);
 	return (getEnergy(i) - 0.5 * pow(getVelocity(i), 2)) * 2. / 3. * rho;
-	//return rho * (UniversalGasConstant/mixture.molarMass()) * getTemp(i);
-	//return (solParam.Gamma - 1.)*(U[energy][i]/rho - pow(getVelocity(i),2)/2.);
 }
 
 double Couette2::getDensity(size_t i)
@@ -146,9 +143,14 @@ double Couette2::getEnergy(size_t i)
 
 double Couette2::getTemp(size_t i)
 {
-	double U = getEnergy(i) - pow(getVelocity(i), 2) / 2.;
-	double n_kB = UniversalGasConstant / mixture.molarMass() * getDensity(i);
-	return U * 2. / 3. / (n_kB)*getDensity(i);
+	double E = getEnergy(i) - pow(getVelocity(i), 2) / 2.;
+	vector<double> fractionArray;
+	double rho = getDensity(i);
+	for (size_t j = 0; j < numberOfComponents; ++j) {
+        fractionArray.push_back(U[j][i] / rho);
+    }
+	double n_kB = R_U / mixture.molarMass(fractionArray) * rho;
+	return E * 2. / 3. / (n_kB) * rho;
 	//return 0.67*mixture.mass(0) / kB * U;
 }
 
@@ -168,7 +170,7 @@ void Couette2::updateU(double dh, double dt)
 	}
 }
 
-void Couette2::updateBorderU(vector<macroParam>& points) // ! change calculation of conservative varibles vector in the fictious cells on the basis on BC type
+void Couette2::updateBorderU(vector<macroParam>& points) 
 {
 	for (int i : {0, (int)(numberOfCells - 1)})
 	{
@@ -182,65 +184,6 @@ void Couette2::updateBorderU(vector<macroParam>& points) // ! change calculation
 	}
 	return;
 }
-//void Couette2::computeF(vector<macroParam> &points, double dh)
-//{
-//    Mixture mixture = points[0].mixture;
-//    for(size_t i = 0 ; i < numberOfCells; i++)
-//    {
-//        // Рассчитываем производные в точке i
-//        double dv_tau_dy;
-//        double dv_normal_dy;
-//        double dT_dy;
-//        if(i!=numberOfCells-1)
-//        {
-//            dT_dy = (points[i+1].temp - points[i].temp) / (dh);
-//            dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (dh);
-//            dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (dh);
-//        }
-//        else
-//        {
-//            dT_dy = -(points[i].temp - points[i-1].temp) / (dh);
-//            dv_tau_dy = -(points[i].velocity_tau - points[i-1].velocity_tau) / (dh);
-//            dv_normal_dy = -(points[i].velocity_normal - points[i-1].velocity_normal) / (dh);
-//        }
-
-//        vector<double> dy_dy(numberOfComponents);
-
-//        //учёт граничных условий
-//        if(i == 0 || i == numberOfCells-1)
-//            fill(dy_dy.begin(), dy_dy.end(),border->get_dyc_dy());
-//        else
-//        {
-//            for(size_t j = 0 ; j <numberOfComponents; j++)
-//            {
-//                dy_dy[j] = (points[i+1].fractionArray[j] - points[i].fractionArray[j])/ (dh);
-//            }
-//        }
-//        // Расчет поточных членов
-//        // .....
-//        // сейчас так:
-//        double etta = coeffSolver->shareViscositySimple(points[i]);
-//        double lambda = coeffSolver->lambda(points[i]);
-//        double bulk = coeffSolver->bulcViscositySimple(mixture,points[i].temp, points[i].density, points[i].pressure);
-
-//        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
-//        {
-//            if(j!=0)
-//                F[j][i] = -points[i].density * mixture.getEffDiff(j) * dy_dy[j];
-//            else
-//                F[j][i] = points[i].density * points[i].velocity_normal;
-//        }
-//        F[v_tau][i] = points[i].density * points[i].velocity_tau * points[i].velocity_normal  -etta * dv_tau_dy;
-//        F[v_normal][i] = points[i].density *pow(points[i].velocity_normal,2) + points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy;
-//        F[energy][i] = 0;
-//        for(size_t j = 0 ; j <numberOfComponents; j++)
-//        {
-//            F[energy][i]+= - points[i].density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
-//        }
-//        F[energy][i] += -lambda*dT_dy - etta*points[i].velocity_tau*dv_tau_dy + (points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy) * points[i].velocity_normal;
-//    }
-//}
-
 
 void Couette2::computeF(vector<macroParam>& points, double dh)
 {
@@ -294,9 +237,9 @@ void Couette2::computeF(vector<macroParam>& points, double dh)
 		// Расчет поточных членов
 		// .....
 		// сейчас так:
-		double etta = coeffSolver->shareViscositySimple(p1);
-		double lambda = coeffSolver->lambda(p1);
-		double bulk = coeffSolver->bulcViscositySimple(p1);
+		double etta = coeffSolver->shearViscosityHS(p1);
+		double lambda = coeffSolver->thermalCond(p1);
+		double bulk = coeffSolver->bulkViscosity(p1);
 
 		for (size_t j = 0; j < mixture.NumberOfComponents; j++)
 		{
@@ -384,7 +327,7 @@ void Couette2Alt::computeF(vector<macroParam>& points, double dh)
 
 		double dT_dy;
 		dT_dy = (p2.temp - p0.temp) / denominator;
-		//        double lambda = coeffSolver->lambda(p1);
+		//        double lambda = coeffSolver->thermalCond(p1);
 
 		for (size_t j = 0; j < mixture.NumberOfComponents; j++)
 		{
@@ -451,9 +394,9 @@ void Couette2Alt::computeFv(vector<macroParam>& points, double dh)
 		// Расчет поточных членов
 		// .....
 		// сейчас так:
-		double lambda = coeffSolver->lambda(p1);
-		double etta = coeffSolver->shareViscositySimple(p1);
-		double bulk = coeffSolver->bulcViscositySimple(p1);
+		double lambda = coeffSolver->thermalCond(p1);
+		double etta = coeffSolver->shearViscosityHS(p1);
+		double bulk = coeffSolver->bulkViscosity(p1);
 
 		for (size_t j = 0; j < mixture.NumberOfComponents; j++)
 		{
@@ -501,7 +444,7 @@ double Couette2AltBinary::getPressure(size_t i)
 		sum += y_c / M_c;
 	}
 	double M = 1 / sum;
-	double pres = getDensity(i) * UniversalGasConstant * getTemp(i) / M;
+	double pres = getDensity(i) * R_U * getTemp(i) / M;
 	return pres;
 }
 
@@ -609,7 +552,7 @@ void Couette2AltBinary::computeF(vector<macroParam>& points, double dh)
 
 		double dT_dy;
 		dT_dy = (p2.temp - p0.temp) / denominator;
-		//        double lambda = coeffSolver->lambda(p1);
+		//        double lambda = coeffSolver->thermalCond(p1);
 
 		for (size_t j = 0; j < mixture.NumberOfComponents; j++)
 		{
@@ -676,9 +619,9 @@ void Couette2AltBinary::computeFv(vector<macroParam>& points, double dh)
 		// Расчет поточных членов
 		// .....
 		// сейчас так:
-		double lambda = coeffSolver->lambda(p1);
-		double etta = coeffSolver->shareViscositySimple(p1);
-		double bulk = coeffSolver->bulcViscositySimple(p1);
+		double lambda = coeffSolver->thermalCond(p1);
+		double etta = coeffSolver->shearViscosityHS(p1);
+		double bulk = coeffSolver->bulkViscosity(p1);
 
 		for (size_t j = 0; j < mixture.NumberOfComponents; j++)
 		{
@@ -860,24 +803,16 @@ double Shockwave1::getVelocityTau(size_t i)
 
 
 double Shockwave1::getTemp(size_t i)
-{
-	// double E_energy = U[energy][i] / getDensity(i); // полная энергия E
-	// double U_energy = E_energy - 0.5 * pow(getVelocity(i), 2); // внутренняя энергия U
+{	// monoatomic gas
 
-	// однокомпонентная - U_energy = 3*n*k*T/(2*density) + k*T/mass + <e_i>_vibr/mass + e_c/mass
-	// многокомпонентная - U_energy = 3*n*k*T/(2*density) +
-	// + sum([k*T/mass[i])*fractionArray[i] for i in range(numberOfComponents)]) +
-	// + sum([fractionArray[i]*<e_i>_vibr/mass[i] for i in range(numberOfComponents)]) +
-	// + sum([fractionArray[i]*e_c/mass[i] for i in range(numberOfComponents)])
-
-	// double n_kB = UniversalGasConstant / mixture.molarMass() * getDensity(i);
-	// double T = U_energy * 2./3. / (n_kB) * getDensity(i);
-
-	double U = getEnergy(i) - pow(getVelocity(i), 2) / 2.;
-	double n_kB = UniversalGasConstant / mixture.molarMass() * getDensity(i);
-	return U * 2. / 3. / (n_kB)*getDensity(i);
-
-	// return T;
+	double E = getEnergy(i) - pow(getVelocity(i), 2) / 2.;
+	vector<double> fractionArray;
+	double rho = getDensity(i);
+	for (size_t j = 0; j < numberOfComponents; ++j) {
+        fractionArray.push_back(U[j][i] / rho);
+    }
+	double n_kB = R_U / mixture.molarMass(fractionArray) * rho;
+	return E * 2. / 3. / (n_kB) * rho;
 }
 
 double Shockwave1::getEnergy(size_t i) {
@@ -885,7 +820,6 @@ double Shockwave1::getEnergy(size_t i) {
 }
 
 double Shockwave1::getPressure(size_t i) {
-	// return UniversalGasConstant * getTemp(i) * getDensity(i) / mixture.molarMass();
 	double rho = getDensity(i);
 	return (getEnergy(i) - 0.5 * pow(getVelocity(i), 2)) * 2. / 3. * rho;
 }
@@ -921,7 +855,7 @@ void Shockwave1::computeF(vector<macroParam>& points, double dh)
 {
 	Mixture mixture = points[0].mixture;
 	macroParam p1;
-#pragma omp parallel for schedule(static)
+	#pragma omp parallel for schedule(static)
 	for (int i = 0; i < numberOfCells; i++)
 	{
 		// Переобозначаем величины в ячейках (не в фиктивных):
@@ -937,7 +871,7 @@ void Shockwave1::computeF(vector<macroParam>& points, double dh)
 void Shockwave1::computeFv(vector<macroParam>& points, double dh)
 {
 	Mixture mixture = points[0].mixture;
-#pragma omp parallel for schedule(static)
+	#pragma omp parallel for schedule(static)
 	for (int i = 0; i < numberOfCells; i++)
 	{
 		// Переобозначаем величины в ячейках (не в фиктивных):
@@ -978,9 +912,9 @@ void Shockwave1::computeFv(vector<macroParam>& points, double dh)
 		}
 
 		// Расчет потоковых членов:
-		double lambda = coeffSolver->lambda(p1);
-		double etta = coeffSolver->shareViscositySimple(p1);
-		double bulk = coeffSolver->bulcViscositySimple(p1);
+		double lambda = coeffSolver->thermalCond(p1);
+		double etta = coeffSolver->shearViscosityHS(p1);
+		double bulk = coeffSolver->bulkViscosity(p1);
 
 		// 1-е уравнение (однокомпонентная постановка) в векторе F с вязкими составляющими:
 		for (size_t j = 0; j < mixture.NumberOfComponents; j++)
@@ -1061,8 +995,13 @@ double Shockwave2::getGamma(size_t i)
 }
 
 double Shockwave2::getPressure(size_t i)
-{
-	return getDensity(i) * UniversalGasConstant * getTemp(i) / mixture.molarMass();
+{	
+	vector<double> fractionArray;
+	double rho = getDensity(i);
+	for (size_t j = 0; j < numberOfComponents; ++j) {
+        fractionArray.push_back(U[j][i] / rho);
+    }
+	return getDensity(i) * R_U * getTemp(i) / mixture.molarMass(fractionArray);
 }
 
 double Shockwave2::getNormalStress(size_t i)
@@ -1115,7 +1054,6 @@ void Shockwave2::computeF(vector<macroParam>& points, double dh)
 
 void Shockwave2::computeFv(vector<macroParam>& points, double dh)
 {
-	// clock_t start = clock();
 	Mixture mixture = points[0].mixture;
 #pragma omp parallel for schedule(static)
 	for (int i = 0; i < numberOfCells; i++)
@@ -1155,35 +1093,13 @@ void Shockwave2::computeFv(vector<macroParam>& points, double dh)
 		else {
 			dy_dy[0] = (p2.fractionArray[0] - p0.fractionArray[0]) / denominator;
 		}
-		/*
-		double inputs[1][2] = {
-			(p1.pressure - P_MIN) / (P_MAX - P_MIN),
-			(p1.temp - T_MIN) / (T_MAX - T_MIN)
-		};
-
-		double layersout[2][1] = { 0., 0. };
-		for (int i = 0; i < 50; i++) {
-			layersout[0][0] +=
-				tanh(
-					(inputs[0][0] * zllayers0weight[0][i])
-					+ zllayers0bias[0][i]
-				) * zllayers2weight[0][i];
-			layersout[1][0] =
-				tanh(
-					(inputs[0][1] * zllayers0weight[1][i])
-					+ zllayers0bias[0][i]
-				) * zllayers2weight[1][i];
-		}
-		// Расчет потоковых членов (NN):
-		double lambda = pow(10, -(layersout[1][0] + zllayers2bias[1][0]));
-		double etta = coeffSolver->shareViscosityOmega(mixture, p1.temp); // !!
-		double bulk = pow(10, -(layersout[0][0]) + zllayers2bias[0][0]);
-		*/
+		
 		// Расчет потоковых членов (Teor):
 		double bulk = coeffSolver->bulkViscosityMultiAtom(p1);
-		double etta = coeffSolver->shareViscosityOmega(mixture, p1.temp); // !!
-		double lambda = coeffSolver->lambdaMultiAtom(p1);
-		// double lambda = coeffSolver->lambdaConstPr(p1);
+		// double bulk = coeffSolver->bulkViscosityConstViscRel(p1);
+		double etta = coeffSolver->shearViscosityLJ(mixture, p1.temp); 
+		double lambda = coeffSolver->thermalCondMultiAtom(p1);
+		// double lambda = coeffSolver->thermalCondConstPr(p1);
 		// 1-е уравнение (однокомпонентная постановка) в векторе F с вязкими составляющими:
 		for (size_t j = 0; j < mixture.NumberOfComponents; j++)
 		{
@@ -1193,9 +1109,6 @@ void Shockwave2::computeFv(vector<macroParam>& points, double dh)
 		Fv[v_tau][i] = -(bulk + 4. / 3. * etta) * dv_tau_dy;
 		Fv[energy][i] = -lambda * dT_dy - (bulk + 4. / 3. * etta) * dv_tau_dy * p1.velocity_tau;
 	}
-	// clock_t end = clock();
-	// double seconds = (double)(end - start) / CLOCKS_PER_SEC;
-	// printf("Time of Fv calculation: %f seconds\n", seconds);
 }
 
 void Shockwave2::calcAndRememberTemp()

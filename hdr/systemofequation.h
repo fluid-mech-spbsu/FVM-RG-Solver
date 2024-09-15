@@ -5,7 +5,7 @@
 #include "energycalc.h"
 #include "numeric.h"
 enum SystemOfEquationType
-{
+{	
 	couette2,
 	couette2Alt,
 	couette2AltBinary,
@@ -104,7 +104,8 @@ struct Couette2Alt : public Couette2
 	void computeF(vector<macroParam>& points, double dh);
 	void computeFv(vector<macroParam>& points, double dh);
 
-	vector<Matrix> Fv;
+	// vector<Matrix> Fv;
+	vector<vector<double>> Fv;
 };
 
 struct Couette2AltBinary : public Couette2Alt
@@ -180,7 +181,8 @@ struct Shockwave1 : public SystemOfEquation
 	void computeF(vector<macroParam>& points, double dh);
 	void computeFv(vector<macroParam>& points, double dh);
 
-	vector<Matrix> Fv;
+	// vector<Matrix> Fv;
+	vector<vector<double>> Fv;
 };
 
 struct Shockwave2 : public SystemOfEquation
@@ -207,7 +209,8 @@ struct Shockwave2 : public SystemOfEquation
 	void computeF(vector<macroParam>& points, double dh);
 	void computeFv(vector<macroParam>& points, double dh);
 
-	vector<Matrix> Fv;
+	// vector<Matrix> Fv;
+	vector<vector<double>> Fv;
 
 private:
 	std::vector<double> temperature;

@@ -21,7 +21,8 @@ void GodunovSolver::solve()
     {
         // Устанавливаем текущий временной шаг
         setDt();
-        T += timeSolvind.last();
+        // T += timeSolvind.last();
+        T += timeSolvind.back();
         // if(i%10000 == 0)
         // {
         //     std::cout<<i<<" next time set "<< T <<std::endl;
@@ -29,11 +30,14 @@ void GodunovSolver::solve()
 
         system->computeF(points, delta_h);
 
-        if(system->systemType == SystemOfEquationType::couette2Alt ||
-            system->systemType == SystemOfEquationType::couette2AltBinary ||
-            system->systemType == SystemOfEquationType::shockwave1 ||
-            system->systemType == SystemOfEquationType::shockwave2)
-            system->computeFv(points, delta_h);
+        if(
+           system->systemType == SystemOfEquationType::couette2 ||
+           system->systemType == SystemOfEquationType::couette2Alt ||
+           system->systemType == SystemOfEquationType::couette2AltBinary ||
+           system->systemType == SystemOfEquationType::shockwave1 ||
+           system->systemType == SystemOfEquationType::shockwave2
+        )
+           system->computeFv(points, delta_h);
 
         riemannSolver->computeFlux(system);
 
@@ -44,7 +48,8 @@ void GodunovSolver::solve()
         //computeR();
 
         // Обновляем вектор U
-        system->updateU(delta_h,timeSolvind.last());
+        // system->updateU(delta_h,timeSolvind.last());
+        system->updateU(delta_h,timeSolvind.back());
 
         // Обновляем вектор макропараметров
         updatePoints();
@@ -55,6 +60,10 @@ void GodunovSolver::solve()
         //записать данные, если это требуется
         // writePoints(T*1000000); // микросек
 
+        // double gamma = solParam.Gamma;
+        // double gamma2 = system->getGamma(solParam.NumCell/2 - 1);
+        // std::cout << "gamma = " << gamma << std::endl;
+        // std::cout << "gamma2 = " << gamma2 << std::endl;
 
         double max;
         if(i%100 == 0)
@@ -66,21 +75,21 @@ void GodunovSolver::solve()
             // std::cout << "energy " << system->getEnergy(30) << std::endl;
             std::cout << "max wave speed " << max << std::endl;
 
-            // double eta_0 = coeffSolver->shareViscosityOmega(points[0].mixture, points[0].temp);
-            // double eta_n = coeffSolver->shareViscosityOmega(points[solParam.NumCell - 1].mixture, points[solParam.NumCell - 1].temp);
-            double zeta_0 = coeffSolver->bulkViscosityMultiAtom(points[0]);
-            double zeta_n = coeffSolver->bulkViscosityMultiAtom(points[solParam.NumCell - 1]);
-            // double lambda_0 = coeffSolver->lambdaMultiAtom(points[0]);
-            // double lambdaPr_0 = coeffSolver->lambdaConstPr(points[0]);
-            // double lambda_n = coeffSolver->lambdaMultiAtom(points[solParam.NumCell - 1]);
-            // double lambdaPr_n = coeffSolver->lambdaConstPr(points[solParam.NumCell - 1]);
+            // double eta_0 = coeffSolver->shearViscosityLJ(points[0].mixture, points[0].temp);
+            // double eta_n = coeffSolver->shearViscosityLJ(points[solParam.NumCell - 1].mixture, points[solParam.NumCell - 1].temp);
+            // double zeta_0 = coeffSolver->bulkViscosityMultiAtom(points[0]);
+            // double zeta_n = coeffSolver->bulkViscosityMultiAtom(points[solParam.NumCell - 1]);
+            // double lambda_0 = coeffSolver->thermalCondMultiAtom(points[0]);
+            // double lambdaPr_0 = coeffSolver->thermalCondConstPr(points[0]);
+            // double lambda_n = coeffSolver->thermalCondMultiAtom(points[solParam.NumCell - 1]);
+            // double lambdaPr_n = coeffSolver->thermalCondConstPr(points[solParam.NumCell - 1]);
             // double cp_0 = energyCalculator->getCP(points[0], 0);
             // double cp_n = energyCalculator->getCP(points[solParam.NumCell - 1], 0);
 
             // std::cout << "shear viscosity at initial cell: " << eta_0 << std::endl;
             // std::cout << "shear viscosity at last cell: " << eta_n << std::endl;
-            std::cout << "bulk viscosity at initial cell: " << zeta_0 << std::endl;
-            std::cout << "bulk viscosity at last cell: " << zeta_n << std::endl;
+            // std::cout << "bulk viscosity at initial cell: " << zeta_0 << std::endl;
+            // std::cout << "bulk viscosity at last cell: " << zeta_n << std::endl;
             // std::cout << "heat conductivity at initial cell: " << lambda_0 << std::endl;
             // std::cout << "heat conductivity at initial cell, const Pr " << lambdaPr_0 << std::endl;
             // std::cout << "heat conductivity at last cell: " << lambda_n << std::endl;
@@ -94,7 +103,7 @@ void GodunovSolver::solve()
         //проверка точности
         if(isObserverWatching)
         {
-            // то есть если проверка наблюдателя не пройдена, нужно прекратить рассчёт
+            // то есть если проверка наблюдателя не пройдена, нужно прекратить расчет
             if(!observerCheck(i))
                 break;
         }

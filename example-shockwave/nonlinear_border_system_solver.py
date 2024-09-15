@@ -6,56 +6,94 @@ from tqdm import tqdm
 import warnings
 warnings.filterwarnings("ignore")
 
-# ARGON DATA
-# gamma = 1.667 # argon
-# molarMass = 0.039948 # argon
-# mass = 6.633521356992e-26 # argon
-# speed_of_sound_room = 322.6 # argon, m/s t T = 300 K and p = 6.66 Pa conditions (https://webbook.nist.gov/cgi/fluid.cgi?ID=C7440371&Action=Page)
-
-# METHANE DATA
-gamma = 1.3084 # calculated, approx for methane from NIST: 1.302, other data: https://www.mem50212.com/MDME/iTester/get-info/thermodynamics.html 
-molarMass = 0.016043 # methane
-mass = 2.663732314e-26 # methane
-speed_of_sound_room = 450.06 # methane, m/s at T = 300 K and p = 100 Pa conditions (https://webbook.nist.gov/cgi/fluid.cgi?ID=C74828&Action=Page)
-
-# consts
+# Constants
 R = 8.3144598
 kB = 1.38064852e-23
-Nav = 6.02214129e23
+N_A = 6.02214129e23
 hc = 6.62559e-34 * 2.99792458e8
 
-Ma = 5
+# Gas data 
+gases = {
+    "argon": {
+        "molecule": False,
+        "gamma": 1.667,
+        "molarMass": 0.039948, # kg/mol
+        "mass": 6.633521356992e-26, # kg
+        "speed_of_sound_room": 322.6 , # m/s
+    },
+    "methane": {
+        "molecule": True,
+        "gamma": 1.3084,
+        "molarMass": 0.016043, # kg/mol
+        "mass": 2.663732314e-26,    # kg
+        "speed_of_sound_room": 450.06, # m/s
+        "number_of_atoms": 4,
+        "rotational_levels": 3,
+        "spectral_data": np.array([302550, 158270, 315680, 136740]), # m^-1
+        "degeneracy": np.array([1, 2, 3, 3]),
+        "D_diss": 3668582.3189, # m^-1, converted from 438.86 kJ/mol https://www.weizmann.ac.il/oc/martin/tools/hartree.html
+        "max vibrational levels": [9, 17, 9, 20] # harmonic oscillator 
+    }
+}
+
+gas = "methane"
+
+molecule = gases[gas]["molecule"]
+gamma = gases[gas]["gamma"]
+molarMass = gases[gas]["molarMass"]
+mass = gases[gas]["mass"]
+speed_of_sound_room = gases[gas]["speed_of_sound_room"]
+
+ground_st_energy = 0
+possible_inds = []
+ground_state_only = False
+
+# Calculate vibrational energy levels
+if molecule:
+    om_e = gases[gas]["spectral_data"]
+    ds = gases[gas]["degeneracy"]
+    D_diss = gases[gas]["D_diss"]
+    max_vibr_lvls = gases[gas]["max vibrational levels"]
+    rot_lvls = gases[gas]["rotational_levels"]
+
+    es = hc * om_e
+    gr_st_energy = sum(hc * (om_e * ds) / 2)  # Ground state energy
+
+    if ground_state_only:
+        possible_inds.append([0] * gases[gas]["number_of_atoms"])
+    else:
+        indices = [0] * gases[gas]["number_of_atoms"]
+
+        for i1 in range(max_vibr_lvls[0]):
+            indices[0] = i1
+            for i2 in range(max_vibr_lvls[1]):
+                indices[1] = i2
+                for i3 in range(max_vibr_lvls[2]):
+                    indices[2] = i3
+                    for i4 in range(max_vibr_lvls[3]):
+                        indices[3] = i4
+
+                        e = (
+                            om_e[0] * (i1 + ds[0] / 2.) +
+                            om_e[1] * (i2 + ds[1] / 2.) +
+                            om_e[2] * (i3 + ds[2] / 2.) +
+                            om_e[3] * (i4 + ds[3] / 2.)
+                        )
+
+                        # If vibrational energy is within the dissociation energy, add the combination
+                        if e <= D_diss:
+                            possible_inds.append(indices.copy())
+
+
+# Initial data
+Ma = 3.8
 T_left = 300 # K
 pressure = 100 # Pa
 
-# calculated parameters
+# Calculated parameters
 velocity_left = Ma * speed_of_sound_room
-density_left = pressure*molarMass / (R * T_left)
-om_e = np.array([302550, 158270, 315680, 136740])
-ds = np.array([1, 2, 3, 3])
-es = hc*om_e # e_0
-e_0000 = sum(hc * (om_e*ds)/2)
-# print("e_0000 = ", e_0000)
-D_diss = 3668582.3189 # m^-1, converted from 438.86 kJ/mol https://www.weizmann.ac.il/oc/martin/tools/hartree.html
-max_vibr_lvls =  [9, 17, 9, 20] # [4, 4, 4, 4]
+density_left = pressure * molarMass / (R * T_left)
 
-possible_inds = []
-for i1 in range(max_vibr_lvls[0]):
-    for i2 in range(max_vibr_lvls[1]):
-        for i3 in range(max_vibr_lvls[2]):
-            for i4 in range(max_vibr_lvls[3]):
-
-                e = (
-                    om_e[0] * (i1 + ds[0] / 2.) + 
-                    om_e[1] * (i2 + ds[1] / 2.) + 
-                    om_e[2] * (i3 + ds[2] / 2.) + 
-                    om_e[3] * (i4 + ds[3] / 2.)
-                )    
-
-                if e <= D_diss:
-                    possible_inds.append([i1, i2, i3, i4])
-
-# possible_inds = [[0,0,0,0]] # ground state case
 ################################################################################################
 
 print("Initial conditions:")
@@ -69,12 +107,12 @@ print("______________________________________")
 
 def solver_approx(velocity_left, density_left, T_left):
     # Rankine-Hugoniot boundary conditions
-    density_right = ((gamma + 1) * pow(Ma,2))/(2 + (gamma-1)*pow(Ma,2))*density_left
-    velocity_right = velocity_left*density_left/density_right 
+    density_right = ((gamma + 1) * pow(Ma,2)) / (2 + (gamma - 1) * pow(Ma,2)) * density_left
+    velocity_right = velocity_left * density_left / density_right 
 
     pressure_left = R * T_left * density_left / molarMass 
-    pressure_right = (pow(Ma,2)*2*gamma - (gamma-1))/(gamma+1)*pressure_left
-    T_right = pressure_right/(density_right*R/molarMass)
+    pressure_right = (pow(Ma,2) * 2 *gamma - (gamma - 1)) / (gamma + 1) * pressure_left
+    T_right = pressure_right / (density_right * R / molarMass)
 
     return velocity_right, density_right, T_right
 
@@ -83,7 +121,7 @@ ans2 = solver_approx(velocity_left, density_left, T_left)
 print("v_n = ", ans2[0])
 print("rho_n = ", ans2[1])
 print("T_n = ", ans2[2])
-print("p_n = ", ans2[1]*R*ans2[2]/molarMass)
+print("p_n = ", ans2[1] * R * ans2[2] / molarMass)
 print("______________________________________")
 
 
@@ -95,36 +133,46 @@ def solver(velocity_left, density_left, T_left):
     v_0, rho_0, T_0 = velocity_left, density_left, T_left
     
     def func(x):
-        # Energy calculated for polyatomic gas:
-        # U_tr = 3 / 2 * kB * temp * n / density, where n = Nav * density / molarMass
-        # U_rot = kB * temp / mass
-        # U_vibr = sum((e_0 + e_0000) / (Z) * exp(-e_0 / (kB * temp)))
-        
-        Zvibr_0, Zvibr_1 = 0, 0
-        for inds in possible_inds:
-            s = ((inds[1]+1)*(inds[2]+1)*(inds[2]+2)*(inds[3]+1)*(inds[3]+2)/4)
-            e_0 = sum(es*inds)
-            Zvibr_0 += s*np.exp(-e_0/(kB*T_0))
-            Zvibr_1 += s*np.exp(-e_0/(kB*x[2]))
-        
-        Uvibr_0, Uvibr_1 = 0, 0
-        for inds in possible_inds:
-            s = ((inds[1]+1)*(inds[2]+1)*(inds[2]+2)*(inds[3]+1)*(inds[3]+2)/4)
-            e_0 = sum(es*inds)
-            Uvibr_0 += s * e_0 * np.exp(-e_0/(kB*T_0))
-            Uvibr_1 += s * e_0 * np.exp(-e_0/(kB*x[2]))
-        
-        Uvibr_0 = Uvibr_0/Zvibr_0 + e_0000
-        # Uvibr_0 = 0 # only ground state case
-        Uvibr_1 = Uvibr_1/Zvibr_1 + e_0000
-        # Uvibr_1 = 0 # only ground state case
+
+        if molecule:
+            Zvibr_0, Zvibr_1 = 0, 0
+            for inds in possible_inds:
+                s = ((inds[1]+1)*(inds[2]+1)*(inds[2]+2)*(inds[3]+1)*(inds[3]+2)/4)
+                e_0 = sum(es*inds)
+                Zvibr_0 += s*np.exp(-e_0/(kB*T_0))
+                Zvibr_1 += s*np.exp(-e_0/(kB*x[2]))
             
-        return [
+            Uvibr_0, Uvibr_1 = 0, 0
+            for inds in possible_inds:
+                s = ((inds[1]+1)*(inds[2]+1)*(inds[2]+2)*(inds[3]+1)*(inds[3]+2)/4)
+                e_0 = sum(es*inds)
+                Uvibr_0 += s * e_0 * np.exp(-e_0/(kB*T_0))
+                Uvibr_1 += s * e_0 * np.exp(-e_0/(kB*x[2]))
+            
+            Uvibr_0 = Uvibr_0/Zvibr_0 + gr_st_energy
+            # Uvibr_0 = 0 # only ground state case
+            Uvibr_1 = Uvibr_1/Zvibr_1 + gr_st_energy
+            # Uvibr_1 = 0 # only ground state case
+
+            return [
+            x[0] * x[1] - v_0 * rho_0, # x[0] - velocity, x[1] - density, x[2] - temperature
+            x[1] * np.power(x[0],2) + R * x[2] * x[1] / molarMass 
+            - rho_0 * np.power(v_0,2) - R * T_0 * rho_0 / molarMass,
+            x[1] * x[0] * (3/2 * R * x[2]  / molarMass +  rot_lvls / 2 * kB * x[2] / mass 
+                           + Uvibr_1 / mass + np.power(x[0],2) / 2 + R * x[2] * x[1] / (molarMass * x[1]))
+            - rho_0 * v_0 * ( 3/2 * R * T_0 / molarMass + rot_lvls / 2 * kB * T_0 / mass 
+                             + Uvibr_0 / mass + np.power(v_0,2) / 2 + R * T_0 * rho_0 / (molarMass * rho_0))
+            ]
+        else: # monatomic gas
+            return [
             x[0] * x[1] - v_0 * rho_0, # x[0] - velocity, x[1] - density, x[2] - temperature
             x[1] * np.power(x[0],2) + R*x[2]*x[1]/molarMass - rho_0 * np.power(v_0,2) - R*T_0*rho_0/molarMass,
-            x[1] * x[0] * ( 3/2*kB*x[2]*Nav/molarMass +  3/2*kB*x[2]/mass + Uvibr_1/mass + np.power(x[0],2)/2 + R*x[2]*x[1]/(molarMass*x[1]))
-            - rho_0 * v_0 * ( 3/2*kB*T_0*Nav/molarMass + 3/2*kB*T_0/mass + Uvibr_0/mass + np.power(v_0,2)/2 + R*T_0*rho_0/(molarMass*rho_0))
+            5 * (rho_0 / x[1] - 1 / 5) * R * x[1] * x[2] / molarMass - 4 * R * T_0 * rho_0 / molarMass
+            # x[1] * x[0] * (3/2*R*x[2]/molarMass + np.power(x[0],2)/2 + R*x[2]*x[1]/(molarMass*x[1]))
+            # - rho_0 * v_0 * (3/2*R*T_0/molarMass + np.power(v_0,2)/2 + R*T_0*rho_0/(molarMass*rho_0))
             ]
+
+        
     
     vs, rhos, Ts = [], [], []
     
@@ -140,18 +188,6 @@ def solver(velocity_left, density_left, T_left):
 
     return ans
 
-# print("Already obtained data on Ma = 3.8 case:")
-# print("v_n =  263.5241")
-# print("rho_n =  0.004174111")
-# print("T_n =  781.843")
-# print("p_n =  ", 0.004174111*R*781.843/molarMass)
-
-# print("Already obtained data on Ma = 3.8 case, ground state:")
-# print("v_n =  348.2051888")
-# print("rho_n = 0.0031599")
-# print("T_n =  976.186")
-# print("p_n =  ", 0.0031599*R*976.186/molarMass)
-
 print("Getting answer via numeric scipy.fsolver:")
 ans = solver(velocity_left, density_left, T_left)
 print("v_n = ", ans[0])
@@ -159,45 +195,3 @@ print("rho_n = ", ans[1])
 print("T_n = ", ans[2])
 print("p_n = ", ans[1]*R*ans[2]/molarMass)
 print("______________________________________")
-
-
-# Mach 3.8
-
-# Initial conditions:
-# v_0 =  1710.2279999999998
-# rho_0 =  0.0006431766819856015 (p = 100 Pa) |  0.0000643176681985601 (p = 10 Pa)
-# T_0 =  300
-
-# Post-shock conditions (general case):
-# v_n =  263.5241 (p = 100 Pa) |  263.5241 (p = 10 Pa)
-# rho_n =  0.004174111 (p = 100 Pa) |  0.0004174111 (p = 10 Pa)
-# T_n =  781.843 (p = 100 Pa) |  781.843 (p = 10 Pa)
-
-# Post-shock conditions (ground state case):
-# v_n =   348.2051888 (p = 100 Pa) |  348.2051888 (p = 10 Pa)
-# rho_n = 0.0031599 (p = 100 Pa) |  0.00031599 (p = 10 Pa)
-# T_n =  976.186 (p = 100 Pa) |  976.186 (p = 10 Pa)
-
-# Mach 3
-
-# Initial conditions:
-# v_0 =  1350.18
-# rho_0 =  0.0006431766819856015
-# T_0 =  300
-
-# Post-shock conditions:
-# v_n =  271.0525325102617
-# rho_n =  0.0032038228325672277
-# T_n =  624.6138539532955
-
-# Mach 5
-
-# Initial conditions:
-# v_0 =  2250.3
-# rho_0 =  0.0006431766819856015
-# T_0 =  300
-
-# Post-shock conditions:
-# v_n =  262.1277941014496
-# rho_n =  0.0055215071429467605
-# T_n =  1040.5303197231733

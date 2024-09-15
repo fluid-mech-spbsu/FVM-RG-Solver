@@ -10,7 +10,6 @@ set(HDR_FOLDER "${PROJECT_SOURCE_DIR}/hdr")
 
 
 set(${PROJECT_NAME}_SRC  ${SRC_FOLDER}/abstractsolver.cpp
-                         ${SRC_FOLDER}/macroparam.cpp
                          ${SRC_FOLDER}/godunovsolver.cpp
 			             ${SRC_FOLDER}/coeffsolver.cpp
                          ${SRC_FOLDER}/mixture.cpp
@@ -34,7 +33,6 @@ set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/abstractsolver.h
                          ${HDR_FOLDER}/bordercondition.h
                          ${HDR_FOLDER}/startcondition.h
                          ${HDR_FOLDER}/datawriter.h
-                         ${HDR_FOLDER}/nn.h  
                          ${HDR_FOLDER}/lawchecker.h  
                          ${HDR_FOLDER}/observer.h
                          ${HDR_FOLDER}/systemofequation.h
@@ -43,8 +41,9 @@ set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/abstractsolver.h
                          ${HDR_FOLDER}/numeric.h
 )
 
-#add_subdirectory(example-couette)
+add_subdirectory(example-couette)
 add_subdirectory(example-shockwave)
+add_subdirectory(example-sods)
 
 find_package(OpenMP)
 IF(OPENMP_FOUND)

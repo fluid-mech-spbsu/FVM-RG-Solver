@@ -1,31 +1,50 @@
+/**
+ * @file mixture.h
+ * @brief Definitions for the Mixture and MixtureComponent structures.
+ * 
+ * This file contains the definitions of the Mixture and MixtureComponent structures,
+ * which represent the properties of a mixture and its components, respectively.
+ */
+
 #ifndef _MIXTURE
 #define _MIXTURE
 #include <vector>
 #include <string>
 #include "global.h"
 
+/**
+ * @brief Represents a component (particle) of a mixture
+ * 
+ * This structure holds various properties of a mixture component. 
+ * ! Need to be reorganized.
+ */
 struct MixtureComponent
 {
-	double molarMass; // молярная масса
-	double epsilonDevK; // параметр в потенциале (для рассчёта вязкости)
-	double Zinf; // параметр для модели Парка
-	double mass;
-	double sigma; // диаметр в метрах
-	double omega_e; // спектроскопическая постоянная
-	int numberVibrLvl; // число колебательных уровней
-	int numberAtoms;
+	double molarMass; /**< Molar mass, set in kg/mol */
+    double mass; /**< Mass of a particle, set in kg */
+    double sigma; /**< Diameter of a particle, set in m */
+    double omega_e; /**< Spectroscopic constants, set in m^-1 */
+	double D_diss; /**< Dissociation energy of the molecule, set in m^-1 */
+    int numberVibrLvl; /**< Number of vibrational levels */
+    int numberAtoms; /**< Number of atoms */
+    int numberOfModes; /**< Number of degenerate modes */
 
-	double D_diss; // энергия диссоциации молекулы
-	int numberOfModes; // число вырожденных мод
-	std::vector<double> omega_eByMode; // спектроскопические постоянные для каждой вырожденной моды
-	std::vector<int> numberVibrLvlByMode; // количество колебательных уровней для каждой вырожденной моды
-	std::vector<int> dByMode; // степень вырожденности каждой моды
-	std::vector<std::vector<int>> possibleVibrInds; // набор возможных состояний молекулы по колебательным уровням мод
+	double epsilonDevK; /**< Parameter in the LJ potential, set in K */
+    double Zinf; /**< Parameter for Park's model */
 
-	//... какие-то другие параметры компонент
-	std::string name;                    //название компоненты
+    std::vector<double> omega_eByMode; /**< Spectroscopic constants for each degenerate mode */
+    std::vector<int> numberVibrLvlByMode; /**< Number of vibrational levels for each degenerate mode */
+    std::vector<int> dByMode; /**< Degree of degeneracy for each mode */
+    std::vector<std::vector<int>> possibleVibrInds; /**< Set of possible vibrational levels of molecule */
+
+    std::string name; /**< Name of the component */
 };
 
+/**
+ * @brief Represents a mixture of components
+ * 
+ * This structure holds various properties of a mixture.
+ */
 struct Mixture
 {
 	Mixture() { NumberOfComponents = 0; };
@@ -36,13 +55,10 @@ struct Mixture
 	Mixture(std::vector<MixtureComponent> components_, double Prandtl_) : components(components_), 
 	  Prandtl(Prandtl_) { NumberOfComponents = components.size(); };
 
-	std::vector<MixtureComponent> components;
-	int NumberOfComponents;
-	double Prandtl; // число Прандтля
-	//... какие-то другие параметры смеси
-	//пример
+	std::vector<MixtureComponent> components; /**< List of mixture components */
+    int NumberOfComponents; /**< Number of components in the mixture */
+    double Prandtl; /**< Prandtl number */
 
-	double molarMass(); // неправильный рассчет в случае двух компонентного газа, использовать незя
 	double molarMass(std::vector<double> y_c);
 	double molarMass(size_t i);
 	double mass(size_t i);
