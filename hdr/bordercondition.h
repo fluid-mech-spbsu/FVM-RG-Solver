@@ -37,7 +37,9 @@ struct BorderConditionCouetteSlip : public BorderConditionCouette
     double get_dyc_dy(){return 0;};
 protected:
     double calcVelocityHalf(macroParam p1, size_t component, string side);
+    double calcVelocityHalf(double v0, macroParam p1, size_t component, string side);
     double calcTempHalf(macroParam p1, size_t component, double velocityHalf, string side);
+    double calcTempHalf(double T0, macroParam p1, size_t component, double velocityHalf, string side);
     double interp1(double value1, double value2);
     macroParam downLast, upLast;
     double sigma; // [0 1]

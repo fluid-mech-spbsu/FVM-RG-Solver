@@ -223,7 +223,7 @@ bool AbstractSolver::observerCheck(size_t currentIteration)
 
 bool AbstractSolver::lawCheck(size_t currentIteration)
 {
-    size_t checkerIteration = 10000;
+    size_t checkerIteration = 100000;
     if(currentIteration % checkerIteration == 0)
     {
         lawChecker.collectData(system->U,system->F,system->Fv, timeSolvind.last(),0);

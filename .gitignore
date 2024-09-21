@@ -10,6 +10,7 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 .vs/
+.vscode/
 data/
 CMakeSettings.json
 out/
@@ -22,3 +23,5 @@ example-shockwave/data/*
 !example-shockwave/data/
 example-couette/data/*
 !example-couette/data/
+example-couette/prev_data/*
+!example-couette/prev_data/

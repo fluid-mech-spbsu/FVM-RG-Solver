@@ -270,7 +270,7 @@ void Couette2::prepareSolving(vector<macroParam> & points)
         for(size_t j = 1; j < numberOfComponents; j++)
             U[j][i] = points[i].densityArray[j] ;
         U[v_tau][i] = points[i].density*points[i].velocity_tau;
-
+        U[v_normal][i] = points[i].density*points[i].velocity_normal;
         U[energy][i] = points[i].pressure/(2./3.)+0.5*pow(points[i].velocity,2)*points[i].density;
         //U[energy][i] = (3.*points[i].pressure)/2. + 0.5*pow(points[i].velocity,2)*points[i].density;
     }
@@ -303,6 +303,7 @@ double Couette2::getVelocity(size_t i)
     double v_t = U[v_tau][i] / getDensity(i);
     double v_n = U[v_normal][i] / getDensity(i);
     double v = sqrt(pow(v_t,2) + pow(v_n,2));
+    // ! Consider for all the cases of velocity sign
     return v;
 }
 
@@ -326,7 +327,6 @@ double Couette2::getTemp(size_t i)
     double U = getEnergy(i) - pow(getVelocity(i),2)/2.;
     double n_kB = UniversalGasConstant / mixture.molarMass() * getDensity(i);
     return U * 2./3. / (n_kB) * getDensity(i);
-    //return 0.67*mixture.mass(0) / kB * U;
 }
 
 void Couette2::updateU(double dh, double dt)
@@ -355,64 +355,6 @@ void Couette2::updateBorderU(vector<macroParam> &points) // ! change calculation
     }
     return;
 }
-//void Couette2::computeF(vector<macroParam> &points, double dh)
-//{
-//    Mixture mixture = points[0].mixture;
-//    for(size_t i = 0 ; i < numberOfCells; i++)
-//    {
-//        // Рассчитываем производные в точке i
-//        double dv_tau_dy;
-//        double dv_normal_dy;
-//        double dT_dy;
-//        if(i!=numberOfCells-1)
-//        {
-//            dT_dy = (points[i+1].temp - points[i].temp) / (dh);
-//            dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (dh);
-//            dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (dh);
-//        }
-//        else
-//        {
-//            dT_dy = -(points[i].temp - points[i-1].temp) / (dh);
-//            dv_tau_dy = -(points[i].velocity_tau - points[i-1].velocity_tau) / (dh);
-//            dv_normal_dy = -(points[i].velocity_normal - points[i-1].velocity_normal) / (dh);
-//        }
-
-//        vector<double> dy_dy(numberOfComponents);
-
-//        //учёт граничных условий
-//        if(i == 0 || i == numberOfCells-1)
-//            fill(dy_dy.begin(), dy_dy.end(),border->get_dyc_dy());
-//        else
-//        {
-//            for(size_t j = 0 ; j <numberOfComponents; j++)
-//            {
-//                dy_dy[j] = (points[i+1].fractionArray[j] - points[i].fractionArray[j])/ (dh);
-//            }
-//        }
-//        // Расчет поточных членов
-//        // .....
-//        // сейчас так:
-//        double etta = coeffSolver->shareViscositySimple(points[i]);
-//        double lambda = coeffSolver->lambda(points[i]);
-//        double bulk = coeffSolver->bulcViscositySimple(mixture,points[i].temp, points[i].density, points[i].pressure);
-
-//        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
-//        {
-//            if(j!=0)
-//                F[j][i] = -points[i].density * mixture.getEffDiff(j) * dy_dy[j];
-//            else
-//                F[j][i] = points[i].density * points[i].velocity_normal;
-//        }
-//        F[v_tau][i] = points[i].density * points[i].velocity_tau * points[i].velocity_normal  -etta * dv_tau_dy;
-//        F[v_normal][i] = points[i].density *pow(points[i].velocity_normal,2) + points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy;
-//        F[energy][i] = 0;
-//        for(size_t j = 0 ; j <numberOfComponents; j++)
-//        {
-//            F[energy][i]+= - points[i].density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
-//        }
-//        F[energy][i] += -lambda*dT_dy - etta*points[i].velocity_tau*dv_tau_dy + (points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy) * points[i].velocity_normal;
-//    }
-//}
 
 
 void Couette2::computeF(vector<macroParam> &points, double dh)

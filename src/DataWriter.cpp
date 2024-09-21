@@ -59,23 +59,47 @@ void DataWriter::writeData(vector<macroParam> data, double time)
 //    densityO2<<"y"<<" "<<"rho_O2"<<endl;
 //    densityO<<"y"<<" "<<"rho_O"<<endl;
 
-    for(size_t i = 0; i < data.size(); i++)
+    // pressure<< dh/2 <<" "<<data[0].pressure<<endl;
+    // velocity<< dh/2 <<" "<<(data[0].velocity + data[1].velocity) / 2. <<endl;
+    // velocity_tau<< dh/2 <<" "<<(data[0].velocity_tau + data[1].velocity_tau) / 2. <<endl;
+    // velocity_normal<< dh/2 <<" "<<(data[0].velocity_normal + data[1].velocity_normal) / 2. <<endl;
+    // temp<< dh/2 <<" "<< (data[0].temp + data[1].temp) / 2. <<endl;
+    // density<< dh/2 <<" " <<data[0].density <<endl;  
+
+    pressure<< 0 <<" "<<data[0].pressure<<endl;
+    velocity<< 0 <<" "<<(data[0].velocity + data[1].velocity) / 2. <<endl;
+    velocity_tau<< 0 <<" "<<(data[0].velocity_tau + data[1].velocity_tau) / 2. <<endl;
+    velocity_normal<< 0 <<" "<<(data[0].velocity_normal + data[1].velocity_normal) / 2. <<endl;
+    temp<< 0 <<" "<< (data[0].temp + data[1].temp) / 2. <<endl;
+    density<< 0 <<" " <<data[0].density <<endl;
+
+    for(size_t i = 1; i < data.size() - 1; i++)
     {
-        pressure<<dh*i<<" "<<data[i].pressure<<endl;
-        velocity<<dh*i<<" "<<data[i].velocity<<endl;
-        velocity_tau<<dh*i<<" "<<data[i].velocity_tau<<endl;
-        velocity_normal<<dh*i<<" "<<data[i].velocity_normal<<endl;
-        temp<<dh*i<<" "<<data[i].temp<<endl;
-        density<<dh*i<<" "<<data[i].density<<endl;
+        pressure<<dh*i - dh/2<<" "<<data[i].pressure<<endl;
+        // pressure<<dh*i<<" "<<data[i].pressure<<endl;
+        velocity<<dh*i - dh/2<<" "<<data[i].velocity<<endl;
+        velocity_tau<<dh*i - dh/2<<" "<<data[i].velocity_tau<<endl;
+        velocity_normal<<dh*i - dh/2<<" "<<data[i].velocity_normal<<endl;
+        temp<<dh*i - dh/2<<" "<<data[i].temp<<endl;
+        density<<dh*i - dh/2<<" "<<data[i].density<<endl;
 //        if(data[i].mixture.NumberOfComponents == 2)
 //        {
 //            densityO2<<dh*i<<" "<<data[i].densityArray[0]<<endl;
 //            densityO<<dh*i<<" "<<data[i].densityArray[1]<<endl;
 //        }
-//        double gamma = 1.4;
-//        double e_ = data[i].pressure/((gamma - 1) * data[i].density);
-//        e<<dh*i<<" "<<e_<<endl;
+
     }
+
+    // double dh_last = dh * (data.size()-1) - dh/2;
+    double dh_last = dh * (data.size()-1) - dh;
+    size_t s = data.size()-1;
+    pressure<<dh_last<<" "<<data[s].pressure<<endl;
+    velocity<<dh_last<<" "<<(data[s].velocity + data[s-1].velocity) / 2.<<endl;
+    velocity_tau<<dh_last<<" "<<(data[s].velocity_tau + data[s-1].velocity_tau) / 2.<<endl;
+    velocity_normal<<dh_last<<" "<<(data[s].velocity_normal + data[s-1].velocity_normal) / 2.<<endl;
+    temp<<dh_last<<" "<<(data[s].temp + data[s-1].temp) / 2.<<endl;
+    density<<dh_last<<" "<<data[s].density<<endl;
+
     pressure.close();
     velocity.close();
     temp.close();

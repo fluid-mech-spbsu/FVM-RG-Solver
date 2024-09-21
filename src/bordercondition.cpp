@@ -13,8 +13,13 @@ void BorderConditionCouette::updatePoints(vector<macroParam> &points)
         points[0].pressure = points[1].pressure;
         points[0].fractionArray = points[1].fractionArray;
         points[0].velocity_tau = -points[1].velocity_tau + 2.* down_velocity;
-        points[0].velocity_normal = -points[1].velocity_normal;
-        points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) + pow(fabs(points[0].velocity_normal),2));
+        points[0].velocity_normal = -points[1].velocity_normal; // always < 0
+        if (points[0].velocity_tau < 0){ // ! write correctly all cases
+            points[0].velocity = -sqrt(pow(fabs(points[0].velocity_tau),2) - pow(fabs(points[0].velocity_normal),2)); 
+        }
+        else {
+            points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) - pow(fabs(points[0].velocity_normal),2)); 
+        }
         points[0].temp = -points[1].temp +  2. * down_temp;
         points[0].density = points[0].pressure * mixture.molarMass(points[0].fractionArray) / (UniversalGasConstant * points[0].temp);
 
@@ -28,7 +33,13 @@ void BorderConditionCouette::updatePoints(vector<macroParam> &points)
         points[N-1].fractionArray = points[N-2].fractionArray;
         points[N-1].velocity_tau = -points[N-2].velocity_tau + 2.* up_velocity;
         points[N-1].velocity_normal = -points[N-2].velocity_normal;
-        points[N-1].velocity = sqrt(pow(points[N-1].velocity_tau,2) + pow(points[N-1].velocity_normal,2));
+        if (points[N-1].velocity < 0){
+            points[N-1].velocity = -sqrt(pow(points[N-1].velocity_tau,2) - pow(points[N-1].velocity_normal,2));
+        }
+        else {
+            points[N-1].velocity = sqrt(pow(points[N-1].velocity_tau,2) - pow(points[N-1].velocity_normal,2));
+        }
+        points[N-1].velocity = sqrt(pow(points[N-1].velocity_tau,2) - pow(points[N-1].velocity_normal,2));
         points[N-1].temp = -points[N-2].temp +  2.* up_temp;
         points[N-1].density = points[N-1].pressure * mixture.molarMass(points[N-1].fractionArray) / (UniversalGasConstant * points[N-1].temp);
 
@@ -197,22 +208,27 @@ void BorderConditionCouetteSlip::updatePointsStart(vector<macroParam> &points)
 {
     size_t N = points.size();
     Mixture mixture = points[1].mixture;
-    if(presEq)
-    {
-        //0
+    // if(presEq)
+    // {
+    //     //0
         points[0].mixture = mixture;
         points[0].pressure = points[1].pressure;
         points[0].fractionArray = points[1].fractionArray;
         points[0].velocity_tau = -points[1].velocity_tau + 2.* down_velocity;
         points[0].velocity_normal = -points[1].velocity_normal;
-        points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) + pow(fabs(points[0].velocity_normal),2));
+        if (points[0].velocity_tau < 0){ // ! write correctly all cases
+            points[0].velocity = -sqrt(pow(fabs(points[0].velocity_tau),2) - pow(fabs(points[0].velocity_normal),2)); 
+        }
+        else {
+            points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) - pow(fabs(points[0].velocity_normal),2)); 
+        }
         points[0].temp = -points[1].temp +  2. * down_temp;
         points[0].density = points[0].pressure * mixture.molarMass(points[0].fractionArray) / (UniversalGasConstant * down_temp);
         for(int i = 0; i < points[0].mixture.components.size(); i++)
             points[0].densityArray[i] = points[0].density * points[0].fractionArray[i];
 
         // remember for next iteration
-        downLast.temp = interp1(points[0].temp, points[1].temp);
+        downLast.temp = down_temp; // interp1(points[0].temp, points[1].temp);
         downLast.fractionArray = points[0].fractionArray;
         downLast.density = points[0].density;
         downLast.densityArray = points[0].densityArray;
@@ -229,14 +245,19 @@ void BorderConditionCouetteSlip::updatePointsStart(vector<macroParam> &points)
         points[N-1].fractionArray = points[N-2].fractionArray;
         points[N-1].velocity_tau = -points[N-2].velocity_tau + 2.* up_velocity;
         points[N-1].velocity_normal = -points[N-2].velocity_normal;
-        points[N-1].velocity = sqrt(pow(points[N-1].velocity_tau,2) + pow(points[N-1].velocity_normal,2));
+        if (points[N-1].velocity < 0){
+            points[N-1].velocity = -sqrt(pow(points[N-1].velocity_tau,2) - pow(points[N-1].velocity_normal,2));
+        }
+        else {
+            points[N-1].velocity = sqrt(pow(points[N-1].velocity_tau,2) - pow(points[N-1].velocity_normal,2));
+        }
         points[N-1].temp = -points[N-2].temp +  2.* up_temp;
         points[N-1].density = points[N-1].pressure * mixture.molarMass(points[N-1].fractionArray) / (UniversalGasConstant * up_temp);
         for(int i = 0; i < points[N-1].mixture.components.size(); i++)
             points[N-1].densityArray[i] = points[N-1].density * points[N-1].fractionArray[i];
 
         // remember for next iteration
-        upLast.temp = interp1(points[N-1].temp, points[N-2].temp);
+        upLast.temp = up_temp; // interp1(points[N-1].temp, points[N-2].temp);
         upLast.fractionArray = points[N-1].fractionArray;
         upLast.density = points[N-1].density;
         upLast.densityArray = points[N-1].densityArray;
@@ -245,57 +266,57 @@ void BorderConditionCouetteSlip::updatePointsStart(vector<macroParam> &points)
         upLast.velocity_normal = 0;
         upLast.pressure = points[N-1].pressure;
         upLast.mixture = mixture;
-    }
-    else
-    {
-        //0
-        points[0].mixture = mixture;
-        points[0].fractionArray = points[1].fractionArray;
-        points[0].density = points[1].density;
-        for(int i = 0; i < points[0].mixture.components.size(); i++)
-            points[0].densityArray[i] = points[0].density * points[0].fractionArray[i];
+    // }
+    // else
+    // {
+    //     //0
+    //     points[0].mixture = mixture;
+    //     points[0].fractionArray = points[1].fractionArray;
+    //     points[0].density = points[1].density;
+    //     for(int i = 0; i < points[0].mixture.components.size(); i++)
+    //         points[0].densityArray[i] = points[0].density * points[0].fractionArray[i];
 
-        points[0].velocity_tau = -points[1].velocity_tau + 2.* down_velocity;
-        points[0].velocity_normal = -points[1].velocity_normal;
-        points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) + pow(fabs(points[0].velocity_normal),2));
-        points[0].temp = -points[1].temp + 2 * down_temp;
-        points[0].pressure = points[0].density * UniversalGasConstant * down_temp / mixture.molarMass(points[0].fractionArray) ;
+    //     points[0].velocity_tau = -points[1].velocity_tau + 2.* down_velocity;
+    //     points[0].velocity_normal = -points[1].velocity_normal;
+    //     points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) + pow(fabs(points[0].velocity_normal),2));
+    //     points[0].temp = -points[1].temp + 2 * down_temp;
+    //     points[0].pressure = points[0].density * UniversalGasConstant * down_temp / mixture.molarMass(points[0].fractionArray) ;
 
-        // remember for next iteration
-        downLast.temp = interp1(points[0].temp, points[1].temp);
-        downLast.fractionArray = points[0].fractionArray;
-        downLast.density = points[0].density;
-        downLast.densityArray = points[0].densityArray;
-        downLast.velocity = down_velocity;
-        downLast.velocity_tau = down_velocity;
-        downLast.velocity_normal = 0;
-        downLast.pressure = points[0].pressure;
-        downLast.mixture = mixture;
+    //     // remember for next iteration
+    //     downLast.temp = interp1(points[0].temp, points[1].temp);
+    //     downLast.fractionArray = points[0].fractionArray;
+    //     downLast.density = points[0].density;
+    //     downLast.densityArray = points[0].densityArray;
+    //     downLast.velocity = down_velocity;
+    //     downLast.velocity_tau = down_velocity;
+    //     downLast.velocity_normal = 0;
+    //     downLast.pressure = points[0].pressure;
+    //     downLast.mixture = mixture;
 
-        //solParam.NumCell-1
-        points[N-1].mixture = mixture;
-        points[N-1].fractionArray = points[N-2].fractionArray;
-        points[N-1].density = points[N-2].density;
-        for(int i = 0; i < points[N-1].mixture.components.size(); i++)
-            points[N-1].densityArray[i] = points[N-1].density * points[N-1].fractionArray[i];
+    //     //solParam.NumCell-1
+    //     points[N-1].mixture = mixture;
+    //     points[N-1].fractionArray = points[N-2].fractionArray;
+    //     points[N-1].density = points[N-2].density;
+    //     for(int i = 0; i < points[N-1].mixture.components.size(); i++)
+    //         points[N-1].densityArray[i] = points[N-1].density * points[N-1].fractionArray[i];
 
-        points[N-1].velocity_tau = -points[N-2].velocity_tau + 2.* up_velocity;
-        points[N-1].velocity_normal = -points[N-2].velocity_normal;
-        points[N-1].velocity = sqrt(pow(points[N-1].velocity_tau,2) + pow(points[N-1].velocity_normal,2));
-        points[N-1].temp = -points[N-2].temp +  2.* up_temp;
-        points[N-1].pressure = points[N-1].density * UniversalGasConstant * up_temp / mixture.molarMass(points[N-1].fractionArray) ;
+    //     points[N-1].velocity_tau = -points[N-2].velocity_tau + 2.* up_velocity;
+    //     points[N-1].velocity_normal = -points[N-2].velocity_normal;
+    //     points[N-1].velocity = sqrt(pow(points[N-1].velocity_tau,2) + pow(points[N-1].velocity_normal,2));
+    //     points[N-1].temp = -points[N-2].temp +  2.* up_temp;
+    //     points[N-1].pressure = points[N-1].density * UniversalGasConstant * up_temp / mixture.molarMass(points[N-1].fractionArray) ;
 
-        // remember for next iteration
-        upLast.temp = interp1(points[N-1].temp, points[N-2].temp);
-        upLast.fractionArray = points[N-1].fractionArray;
-        upLast.density = points[N-1].density;
-        upLast.densityArray = points[N-1].densityArray;
-        upLast.velocity = up_velocity;
-        upLast.velocity_tau = up_velocity;
-        upLast.velocity_normal = 0;
-        upLast.pressure = points[N-1].pressure;
-        upLast.mixture = mixture;
-    }
+    //     // remember for next iteration
+    //     upLast.temp = interp1(points[N-1].temp, points[N-2].temp);
+    //     upLast.fractionArray = points[N-1].fractionArray;
+    //     upLast.density = points[N-1].density;
+    //     upLast.densityArray = points[N-1].densityArray;
+    //     upLast.velocity = up_velocity;
+    //     upLast.velocity_tau = up_velocity;
+    //     upLast.velocity_normal = 0;
+    //     upLast.pressure = points[N-1].pressure;
+    //     upLast.mixture = mixture;
+    // }
 }
 
 void BorderConditionCouetteSlip::updatePoints(vector<macroParam> &points)
@@ -312,12 +333,21 @@ void BorderConditionCouetteSlip::updatePoints(vector<macroParam> &points)
         points[0].pressure = points[1].pressure;
         points[0].fractionArray = points[1].fractionArray;
 
+        // double v0 = -points[1].velocity_tau + 2.* down_velocity;
+        // double T0 = -points[1].temp +  2. * down_temp;
         velocityHalf = calcVelocityHalf(points[1], 0, "down");
+        // velocityHalf = calcVelocityHalf(v0, points[1], 0, "down");
         temperatureHalf = calcTempHalf(points[1], 0, velocityHalf, "down");
+        // temperatureHalf = calcTempHalf(T0, points[1], 0, velocityHalf, "down");
 
         points[0].velocity_tau = -points[1].velocity_tau + 2.* velocityHalf;
         points[0].velocity_normal = -points[1].velocity_normal;
-        points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) + pow(fabs(points[0].velocity_normal),2));
+        if (points[0].velocity_tau < 0){
+            points[0].velocity = -sqrt(pow(fabs(points[0].velocity_tau),2) - pow(fabs(points[0].velocity_normal),2));
+        }
+        else {
+            points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) - pow(fabs(points[0].velocity_normal),2));
+        }
         points[0].temp = -points[1].temp + 2 * temperatureHalf;
         points[0].density = points[0].pressure * mixture.molarMass(points[0].fractionArray) / (UniversalGasConstant * temperatureHalf);
         for(int i = 0; i < points[0].mixture.components.size(); i++)
@@ -339,12 +369,21 @@ void BorderConditionCouetteSlip::updatePoints(vector<macroParam> &points)
         points[N-1].pressure = points[N-2].pressure;
         points[N-1].fractionArray = points[N-2].fractionArray;
 
+        // v0 = -points[N-2].velocity_tau + 2.* up_velocity;
+        // T0 = -points[N-2].temp +  2. * up_temp;
         velocityHalf = calcVelocityHalf(points[N-2], 0, "up");
+        // velocityHalf = calcVelocityHalf(v0, points[N-2], 0, "up");
         temperatureHalf = calcTempHalf(points[N-2], 0, velocityHalf, "up");
+        // temperatureHalf = calcTempHalf(T0, points[N-2], 0, velocityHalf, "up");
 
         points[N-1].velocity_tau = -points[N-2].velocity_tau + 2.* velocityHalf;
         points[N-1].velocity_normal = -points[N-2].velocity_normal;
-        points[N-1].velocity = sqrt(pow(points[N-1].velocity_tau,2) + pow(points[N-1].velocity_normal,2));
+        if (points[N-1].velocity_tau < 0){
+            points[N-1].velocity = -sqrt(pow(points[N-1].velocity_tau,2) - pow(points[N-1].velocity_normal,2));
+        }
+        else {
+            points[N-1].velocity_tau = sqrt(pow(points[N-1].velocity_tau,2) - pow(points[N-1].velocity_normal,2));
+        }
         points[N-1].temp = -points[N-2].temp +  2.* temperatureHalf;
         points[N-1].density = points[N-1].pressure * mixture.molarMass(points[N-1].fractionArray) / (UniversalGasConstant * temperatureHalf);
         for(int i = 0; i < points[N-1].mixture.components.size(); i++)
@@ -434,15 +473,17 @@ macroParam BorderConditionCouetteSlip::getWallParam(string side)
     return point;
 }
 
-double BorderConditionCouetteSlip::calcVelocityHalf(macroParam p1, size_t component, string side)
+double BorderConditionCouetteSlip::calcVelocityHalf(macroParam p1, size_t i, string side)
 {
     // p0 - ghost cell, p1 - real cell
-    int i = component;
-    double rhoHalf = p1.densityArray[i];
+    // int i = component;
+    double rhoHalf = p1.density;
     double m = p1.mixture.mass(i);
     double M = p1.mixture.molarMass(i);
     macroParam point(p1.mixture);
     double wallVelocity = 0;
+    double numerator = 0;
+    double denominator = 1;
     if(side == "down")
     {
         point = downLast;
@@ -453,23 +494,62 @@ double BorderConditionCouetteSlip::calcVelocityHalf(macroParam p1, size_t compon
         point = upLast;
         wallVelocity = up_velocity;
     }
-    double mu = coeffSolver->shareViscositySimple(point); // was forgotten...
+    double mu = coeffSolver->shareViscositySimple(point); 
     double T_last = point.temp;
     double mult = sqrt(2 * M_PI/ (m * kB * T_last) ) * (2 - sigma) * kB * mu *  M / (sigma * UniversalGasConstant * rhoHalf);
-    double numerator = -mult * p1.velocity_tau / delta_h + wallVelocity;
-    double denominator = 1 - mult / delta_h;
+    numerator = mult * p1.velocity_tau * 2 / delta_h + wallVelocity;
+    denominator = 1 + mult * 2 / delta_h;
+    
     return numerator / denominator;
 }
 
-double BorderConditionCouetteSlip::calcTempHalf(macroParam p1, size_t component, double velocityHalf, string side)
+double BorderConditionCouetteSlip::calcVelocityHalf(double v0, macroParam p1, size_t i, string side)
 {
     // p0 - ghost cell, p1 - real cell
-    int i = component;
-    double rhoHalf = p1.densityArray[i];
+    // int i = component;
+    double rhoHalf = p1.density;
     double m = p1.mixture.mass(i);
     double M = p1.mixture.molarMass(i);
     macroParam point(p1.mixture);
-    double wallTemperature = 0, wallVelocity = 0;
+    double wallVelocity = 0;
+    double numerator = 0;
+    double denominator = 1;
+    if(side == "down")
+    {
+        point = downLast;
+        wallVelocity = down_velocity;
+        double mu = coeffSolver->shareViscositySimple(point); 
+        double T_last = point.temp;
+        double mult = sqrt(2 * M_PI/ (m * kB * T_last) ) * (2 - sigma) * kB * mu *  M / (sigma * UniversalGasConstant * rhoHalf);
+        numerator = mult * p1.velocity_tau * 2 / delta_h + wallVelocity;
+        denominator = 1 + mult * 2 / delta_h;
+    }
+    else if(side == "up")
+    {
+        point = upLast;
+        wallVelocity = up_velocity;
+        double mu = coeffSolver->shareViscositySimple(point); 
+        double T_last = point.temp;
+        double mult = sqrt(2 * M_PI/ (m * kB * T_last) ) * (2 - sigma) * kB * mu *  M / (sigma * UniversalGasConstant * rhoHalf);
+        numerator = mult * v0 * 2 / delta_h + wallVelocity;
+        denominator = 1 + mult * 2 / delta_h;
+    }
+    
+    return numerator / denominator;
+}
+
+double BorderConditionCouetteSlip::calcTempHalf(macroParam p1, size_t i, double velocityHalf, string side)
+{
+    // p0 - ghost cell, p1 - real cell
+    // int i = component;
+    double rhoHalf = p1.density;
+    double m = p1.mixture.mass(i);
+    double M = p1.mixture.molarMass(i);
+    macroParam point(p1.mixture);
+    double wallTemperature = 0;
+    double wallVelocity = 0;
+    double numerator = 0;
+    double denominator = 1;
     if(side == "down")
     {
         point = downLast;
@@ -487,8 +567,49 @@ double BorderConditionCouetteSlip::calcTempHalf(macroParam p1, size_t component,
     double T_last = point.temp;
     double mult = (2 - sigma) / (2 * sigma) * sqrt((M_PI * m) / (2 * kB * T_last)) * (M * coeffSolver->lambda(point)) / (UniversalGasConstant * rhoHalf);
     double add = m * pow((velocityHalf - wallVelocity),2) / (4 * kB);
-    double numerator = -mult * p1.temp / delta_h + wallTemperature + add ;
-    double denominator = 1 - mult / delta_h;
+    numerator = mult * p1.temp * 2 / delta_h + wallTemperature + add ;
+    denominator = 1 + mult * 2 / delta_h;
+        
+    return numerator / denominator;
+}
+
+double BorderConditionCouetteSlip::calcTempHalf(double T0, macroParam p1, size_t i, double velocityHalf, string side)
+{
+    // p0 - ghost cell, p1 - real cell
+    // int i = component;
+    double rhoHalf = p1.density;
+    double m = p1.mixture.mass(i);
+    double M = p1.mixture.molarMass(i);
+    macroParam point(p1.mixture);
+    double wallTemperature = 0;
+    double wallVelocity = 0;
+    double numerator = 0;
+    double denominator = 1;
+    if(side == "down")
+    {
+        point = downLast;
+        wallVelocity = down_velocity;
+        wallTemperature = down_temp;
+        wallVelocity = down_velocity;
+        double T_last = point.temp;
+        double mult = (2 - sigma) / (2 * sigma) * sqrt((M_PI * m) / (2 * kB * T_last)) * (M * coeffSolver->lambda(point)) / (UniversalGasConstant * rhoHalf);
+        double add = m * pow((velocityHalf - wallVelocity),2) / (4 * kB);
+        numerator = mult * p1.temp * 2 / delta_h + wallTemperature + add ;
+        denominator = 1 + mult * 2 / delta_h;
+    }
+    else if(side ==  "up")
+    {
+        point = upLast;
+        wallVelocity = up_velocity;
+        wallTemperature = up_temp;
+        wallVelocity = up_velocity;
+        double T_last = point.temp;
+        double mult = (2 - sigma) / (2 * sigma) * sqrt((M_PI * m) / (2 * kB * T_last)) * (M * coeffSolver->lambda(point)) / (UniversalGasConstant * rhoHalf);
+        double add = m * pow((velocityHalf - wallVelocity),2) / (4 * kB);
+        numerator = mult * T0 * 2 / delta_h + wallTemperature + add ;
+        denominator = 1 + mult * 2 / delta_h;
+    }
+    
     return numerator / denominator;
 }
 

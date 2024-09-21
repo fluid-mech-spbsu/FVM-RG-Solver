@@ -46,7 +46,7 @@ void GodunovSolver::solve()
         // std::cout << "visc " << coeffSolver->shareViscositySimple(points[(int)(solParam.NumCell/2)]) << std::endl;
 
         double max;
-        if(i%10000 == 0)
+        if(i%100000 == 0)
         {
             std::cout<<i<<" iteration"<<std::endl;
             writePoints(T*1000000); // микросек

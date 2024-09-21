@@ -24,7 +24,7 @@ int main()
     //////////////////////////////////////////////////////////////
     ///////////////////// Border Condition for Couette ///////////
     //////////////////////////////////////////////////////////////
-    int caseType = 1;
+    int caseType = 0;
     double T_up_wall;
     double T_down_wall;
     double velocity_up;
@@ -54,7 +54,7 @@ int main()
 
     BorderConditionCouetteSlip borderConditionCouetteSlip;
     borderConditionCouetteSlip.setWallParameters(velocity_up, velocity_down, T_up_wall, T_down_wall);
-    double accommodationCoeff = 1;
+    double accommodationCoeff = 0.5;
     borderConditionCouetteSlip.setAccommodationCoeff(accommodationCoeff);
 
     //////////////////////////////////////////////////////////////
@@ -81,16 +81,21 @@ int main()
     startParamCouetteAr.setMixture(Ar); // TODO temp
     startParamCouetteArSlip.setMixture(Ar); // TODO temp
     macroParam startParamAr(Ar);
-    bool newSolving = true;
+    bool newSolving = false;
+
+    double pressure;
+
     if(newSolving)
     {
-        startParamAr.density = 0.000012786; //0.00012786; // 0.03168;
+        startParamAr.density = 0.000115; // 0.0000115; //  correct case
         startParamAr.fractionArray[0] = 1;
         startParamAr.densityArray[0] =  startParamAr.fractionArray[0] * startParamAr.density;
 
-        startParamAr.temp = 273; //140
-        startParamAr.velocity_tau = 5;
+        startParamAr.temp = 273; 
+        startParamAr.velocity_tau = 10;
         startParamAr.velocity_normal = 0;
+
+        pressure = startParamAr.density * T_up_wall * UniversalGasConstant / argon.molarMass;
 
         startParamCouetteAr.setBorderCondition(&borderConditionCouette);
         startParamCouetteAr.setDistributionParameter(startParamAr);
@@ -100,7 +105,7 @@ int main()
     }
     else
     {
-        DataWriter writer(outputData);
+        DataWriter writer(outputData); 
         DataReader reader(outputData + "/prev_data");
 
         reader.read();
@@ -112,38 +117,42 @@ int main()
 
         startParamCouetteArSlip.setBorderCondition(&borderConditionCouetteSlip);
         startParamCouetteArSlip.setDistributionParameter(startParameters);
+
+        pressure = startParameters[0].density * T_up_wall * UniversalGasConstant / argon.molarMass; // Pa, for the above set of conditions
+
     }
 
     //////////////////////////////////////////////////////////////
 
     solverParams solParam;
-    solParam.NumCell     = 67;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 502;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;   // Ar
-    solParam.CFL      = 0.9;    // Число Куранта 0.9
-    solParam.MaxIter     = 10000000; // максимальное кол-во итареций
+    solParam.CFL      = 0.95;    // Число Куранта 0.9
+    solParam.MaxIter     = 8000000; // максимальное кол-во итареций
     solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 1E-6; // точность
+    double precision = 1E-7; // точность
     Observer watcher(precision);
     watcher.setPeriodicity(10000);
 
 
     // DataWriter writer(outputData);
     DataWriter writer(outputData);
-    DataReader reader(outputData + "\prev_data");
+    DataReader reader(outputData + "/prev_data");
 
     reader.read();
     vector<macroParam> startParameters;
     reader.getPoints(startParameters);
 
 
-    double viscocity_argon = 2.2724e-05;
-    double pressure = startParamAr.density * UniversalGasConstant * startParamAr.temp / argon.molarMass;
-    double MFP = viscocity_argon / pressure * sqrt(M_PI * UniversalGasConstant * startParamAr.temp / argon.molarMass); // mean free path length for argon
-    std::cout << "mean free path: " << MFP << std::endl;
+    double viscocity_argon = 2.0988e-05;
 
     GodunovSolver solver(Ar, solParam, SystemOfEquationType::couette1, RiemannSolverType::HLLESolver);
-    double h = 1;
+    
+    double MFP = viscocity_argon / pressure * sqrt(M_PI * UniversalGasConstant * T_up_wall / 2. / argon.molarMass); // Mean free path length for Argon
+
+    double h = 1; // General length between the walls
+    // h = h - 2 * MFP; // Effective length between the walls (length without Knudsen layers)
 
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
@@ -152,24 +161,31 @@ int main()
 
     
 
-    bool BCSlip = 0;
+    bool BCSlip = 1;
     if(BCSlip)
     {
         solver.setBorderConditions(&borderConditionCouetteSlip); // Slip border
         solver.setStartDistribution(&startParamCouetteArSlip); // Slip border
-        writer.writeSimulationParam("border type", "slip");
-        writer.writeSimulationParam("accommodationCoeff",accommodationCoeff);
+        // writer.writeSimulationParam("border type", "slip");
+        // writer.writeSimulationParam("accommodationCoeff",accommodationCoeff);
     }
     else
     {
         solver.setBorderConditions(&borderConditionCouette);
         solver.setStartDistribution(&startParamCouetteAr);
-        writer.writeSimulationParam("border type", "noSlip");
+        // writer.writeSimulationParam("border type", "noSlip");
     }
 
-    writer.writeSimulationParam("density", startParamAr.density);
-    writer.writeSimulationParam("number of cell", solParam.NumCell);
-    writer.writeSimulationParam("gamma", solParam.Gamma);
-    writer.writeSimulationParam("CFL", solParam.CFL);
+    // writer.writeSimulationParam("density", startParamAr.density);
+    // writer.writeSimulationParam("number of cell", solParam.NumCell);
+    // writer.writeSimulationParam("gamma", solParam.Gamma);
+    // writer.writeSimulationParam("CFL", solParam.CFL);
+
+    std::cout << "mean free path: " << MFP << std::endl;
+
+    std::cout << "Knudsen number: " << MFP / h << std::endl;
+
+    std::cout << "cell size: " << h/(solParam.NumCell - 2) << std::endl;
+
     solver.solve();
 }
