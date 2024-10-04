@@ -8,7 +8,7 @@
 #include "mixture.h"
 #include "coeffsolver.h"
 #include "bordercondition.h"
-#include "startcondition.h"
+#include "startdistribution.h"
 #include "datawriter.h"
 #include "observer.h"
 #include "systemofequation.h"
@@ -35,7 +35,7 @@ public:
 	void setObserver(Observer* obs);
 
 	// устанавливает начальное распределение
-	void setStartDistribution(StartCondition* startDist);
+	void setStartDistribution(StartDistribution* startDist);
 
 	// устанавливает энергетические расчеты
 	void setEnergyCalculator(EnergyCalc* energyCalculator_);

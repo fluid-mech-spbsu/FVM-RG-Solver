@@ -59,6 +59,14 @@ double SystemOfEquation::getMaxVelocity()
 	return res;
 }
 
+double SystemOfEquation::getMiddleTemp()
+{
+	size_t i = numberOfCells / 2;
+	double temp = getTemp(i);
+	
+	return temp;
+}
+
 void SystemOfEquation::prepareVectorSizes()
 {
 	U.resize(systemOrder); // т.е. 1 уравнения неразрывности + 1 уравнения движения + 1 уравнение энергии
@@ -1118,7 +1126,6 @@ void Shockwave2::calcAndRememberTemp()
 	{
 		macroParam p0(mixture);
 		p0.temp = temperature[i];
-		p0.temp_vibr = temperature[i]; // one-temp model
 		p0.densityArray.resize(1);
 		p0.fractionArray.resize(1);
 		p0.densityArray[0] = getDensity(i);

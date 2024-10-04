@@ -72,7 +72,7 @@ int main()
     ///////////////////// Start param for Couette ////////////////
     ////////////////////////////  Ar  ///////////////////////////
 
-    UniformDistributionBorder startParamCouetteAr;
+    UniformDistribution startParamCouetteAr;
     
     macroParam startParamAr(Ar);
     
@@ -103,7 +103,7 @@ int main()
 
     // DataWriter writer(outputData);
     DataWriter writer(outputData);
-    DataReader reader(outputData + "\prev_data");
+    DataReader reader(outputData + "/prev-data");
 
     reader.read();
     vector<macroParam> startParameters;

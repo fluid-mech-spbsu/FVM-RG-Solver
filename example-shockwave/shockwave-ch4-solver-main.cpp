@@ -31,8 +31,8 @@ int main()
 	methane.mass = 2.663732314e-26;
 	methane.epsilonDevK = 151.4; 
 	methane.Zinf = 89.15;
-	methane.sigma = 3.737e-10; // m. other option - 3.65e-10
-	methane.D_diss = 3668582.3189; // m^-1!, converted from 438.86 kJ/mol
+	methane.sigma = 3.737e-10; // m, other option - 3.65e-10
+	methane.D_diss = 3668582.3189; // m^-1, converted from 438.86 kJ/mol
 	methane.numberAtoms = 5;
 	methane.numberOfModes = 4;
 	methane.omega_eByMode = { 302550, 158270, 315680, 136740 }; // m^-1
@@ -115,7 +115,8 @@ int main()
 	////////////////// Start param for Shockwave /////////////////
 	////////////////////////////  CH4  ///////////////////////////
 
-	ShockwaveGapDistribution startParamShockwaveCH4;
+	GapDistribution startParamShockwaveCH4;
+	FixedDistribution startParamShockwaveCH4Fixed;
 	macroParam leftStartParam(CH4);
 	macroParam rightStartParam(CH4);
 
@@ -135,8 +136,31 @@ int main()
 	rightStartParam.fractionArray[0] = 1;
 	rightStartParam.densityArray[0] = rightStartParam.fractionArray[0] * rightStartParam.density;
 
-	startParamShockwaveCH4.setDistributionParameter(leftStartParam, rightStartParam);
-	startParamShockwaveCH4.setEnergyCalculator(&oneTempApproxMultiModes);
+
+	bool newSolving = true;
+
+	if(newSolving)
+    {
+		startParamShockwaveCH4.setDistributionParameter(leftStartParam, rightStartParam);
+		startParamShockwaveCH4.setEnergyCalculator(&oneTempApproxMultiModes);
+	}
+	else{
+		DataReader reader(outputData + "/prev-data");
+		reader.read();
+        vector<macroParam> startParameters;
+        reader.getPoints(startParameters);
+
+		for (size_t i = 0; i < startParameters.size(); i++)
+		{
+			startParameters[i].mixture = CH4;
+		}
+		
+
+		startParamShockwaveCH4Fixed.setDistributionParameter(startParameters);
+		startParamShockwaveCH4Fixed.setEnergyCalculator(&oneTempApproxMultiModes);
+	}
+
+	
 
 	//////////////////////////////////////////////////////////////
 	///////////////// Solver param for Shockwave ////////////////
@@ -146,12 +170,12 @@ int main()
 	solParam.NumCell = 45 + 2;  // Число расчетных ячеек с учетом двух фиктивных ячеек
 	solParam.Gamma = 1.30842;     // CH4, but its also implemented changable in macroparam
 	solParam.CFL = 0.9;         // Число Куранта
-	solParam.MaxIter = 4000;  // максимальное кол-во итераций
+	solParam.MaxIter = 10000;  // максимальное кол-во итераций
 	solParam.Ma = 3.8;			// Число Маха, сейчас не влияет на решатель, просто формальность
 
 	double precision = 1E-6;   // точность
 	Observer watcher(precision);
-	watcher.setPeriodicity(10000);
+	watcher.setPeriodicity(100);
 
 
 	DataWriter writer(outputData);
@@ -178,7 +202,10 @@ int main()
 	solver.setEnergyCalculator(&oneTempApproxMultiModes);
 	solver.setBorderConditions(&borderConditionShockwave);
 
-	solver.setStartDistribution(&startParamShockwaveCH4);
+	if(newSolving)
+		solver.setStartDistribution(&startParamShockwaveCH4);
+	else
+		solver.setStartDistribution(&startParamShockwaveCH4Fixed);
 
 	std::cout << "Start solving\n";
 	auto start = std::chrono::high_resolution_clock::now();

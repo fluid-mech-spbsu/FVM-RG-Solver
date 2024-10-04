@@ -17,14 +17,14 @@ using namespace std;
 
 // Main constants
 
-const double N_A = 6.02214076E23; /**< Avogadro's number (1/mol) */
-const double R_U = 8.3144598;     /**< Universal Gas constant (J/mol/K) */
-const double kB = 1.38064852e-23; /**< Boltzmann's constant (J/K) */
-const double kBE = 8.617e-5;      /**< Boltzmann's constant (elVolt*K) */
+constexpr double N_A = 6.02214076E23; /**< Avogadro's number (1/mol) */
+constexpr double R_U = 8.3144598;     /**< Universal Gas constant (J/mol/K) */
+constexpr double kB = 1.38064852e-23; /**< Boltzmann's constant (J/K) */
+constexpr double kBE = 8.617e-5;      /**< Boltzmann's constant (elVolt*K) */
 
-static const double hPlank = 6.62607015e-34; /**< Planck's constant (J*s) */
-static const double clight = 2.99792458e8;   /**< Speed of light (m/s) */
-static const double hc = hPlank * clight; 
+constexpr double hPlank = 6.62607015e-34; /**< Planck's constant (J*s) */
+constexpr double clight = 2.99792458e8;   /**< Speed of light (m/s) */
+constexpr double hc = hPlank * clight; 
 
 /**
  * @brief Parameters for the solver

@@ -85,7 +85,7 @@ int main()
 	////////////////// Start params for Shockwave ////////////////
 	////////////////////////////  Ar  ////////////////////////////
 
-	ShockwaveGapDistribution startParamShockwaveAr; // The area is divided into two parts, in each of which the gas parameters are constant
+	GapDistribution startParamShockwaveAr; // The area is divided into two parts, in each of which the gas parameters are constant
 	macroParam leftStartParam(Ar);
 	macroParam rightStartParam(Ar);
 

@@ -28,7 +28,6 @@ struct macroParam
 	double velocity_normal = 0; /**< Normal velocity component */
 	double velocity = 0; /**< Total velocity */
 	double temp = 0; /**< Gas temperature */
-	double temp_vibr = 0; /**< Vibrational temperature, currently is not applied */
 	double soundSpeed = 0; /**< Speed of sound in the gas mixture */
 	double gamma; /**< Specific heat ratio */
 	string gas = "Ar"; /**< Gas mixture name */

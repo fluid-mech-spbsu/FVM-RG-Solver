@@ -37,6 +37,7 @@ struct SystemOfEquation
     virtual double getHeatFlux(size_t i) = 0;
 
 	double getMaxVelocity();
+	double getMiddleTemp();
 
 	virtual void prepareIndex() = 0;
 	virtual void prepareVectorSizes();

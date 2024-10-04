@@ -44,7 +44,7 @@ void AbstractSolver::setObserver(Observer* obs)
 	isObserverWatching = true;
 }
 
-void AbstractSolver::setStartDistribution(StartCondition* startDist)
+void AbstractSolver::setStartDistribution(StartDistribution* startDist)
 {
 	prepareVectorSizes();
 	startDist->setStartDistribution(points);
@@ -215,14 +215,14 @@ bool AbstractSolver::observerCheck(size_t currentIteration)
 
 bool AbstractSolver::lawCheck(size_t currentIteration)
 {
-	size_t checkerIteration = 10000;
-	if (currentIteration % checkerIteration == 0)
+	// size_t checkerIteration = 10000;
+	if (currentIteration % watcherIteration == 0)
 	{
 		// lawChecker.collectData(system->U, system->F, system->Fv, timeSolvind.last(), 0);
 		lawChecker.collectData(system->U, system->F, system->Fv, timeSolvind.back(), 0);
 		return true;
 	}
-	if (currentIteration % checkerIteration == 1)
+	if (currentIteration % watcherIteration == 1)
 	{
 		// lawChecker.collectData(system->U, system->F, system->Fv, timeSolvind.last(), 1);
 		lawChecker.collectData(system->U, system->F, system->Fv, timeSolvind.back(), 1);
