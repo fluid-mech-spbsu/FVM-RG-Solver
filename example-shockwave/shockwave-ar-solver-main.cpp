@@ -1,5 +1,5 @@
 #include "godunovsolver.h"
-#include "DataWriter.h"
+#include "datawriter.h"
 #include "observer.h"
 #include <filesystem>
 #include <energycalc.h>
