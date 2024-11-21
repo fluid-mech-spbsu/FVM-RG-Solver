@@ -238,7 +238,9 @@ void Couette1::computeF(vector<macroParam> &points, double dh)
         // .....
         // сейчас так:
         double etta = coeffSolver->shareViscositySimple(points[i]);
-        double lambda = coeffSolver->lambda(points[i]);
+        // double etta = coeffSolver->shearViscPowerLaw(points[i]);
+        // double lambda = coeffSolver->lambda(points[i]);
+        double lambda = coeffSolver->thermCondConstPr(points[i]);
 //        double etta =  0;
 //        double lambda = 0;
         for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)

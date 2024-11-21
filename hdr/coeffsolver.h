@@ -5,7 +5,9 @@ struct CoeffSolver
 {
 public:
     virtual double shareViscositySimple(macroParam currentPoint) = 0;
+    virtual double shearViscPowerLaw(macroParam currentPoint) = 0;
     virtual double lambda(macroParam currentPoint) = 0;
+    virtual double thermCondConstPr(macroParam currentPoint) = 0;
     virtual double shareViscosityOmega(Mixture mix,double currentT) = 0;
     virtual double getOmega22(Mixture mix,double T) = 0;
     virtual double bulcViscositySimple(macroParam currentPoint) = 0;
@@ -17,7 +19,9 @@ public:
 struct CoeffSolver1Comp1Temp : public CoeffSolver
 {
     double shareViscositySimple(macroParam currentPoint);
+    double shearViscPowerLaw(macroParam currentPoint);
     double lambda(macroParam currentPoint);
+    double thermCondConstPr(macroParam currentPoint);
     double shareViscosityOmega(Mixture mix,double currentT);
     double getOmega22(Mixture mix,double T);
     double bulcViscositySimple(macroParam currentPoint);

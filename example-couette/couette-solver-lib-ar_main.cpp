@@ -29,11 +29,14 @@ int main()
     double T_down_wall;
     double velocity_up;
     double velocity_down;
+
+    double argonSpeedOfSound = 307.73; // m/s	
+
     if(caseType == 0)
     {
         T_up_wall = 273;
         T_down_wall = 273;
-        velocity_up = 300;
+        velocity_up = 0; //300;
         velocity_down = 0;
     }
     else if(caseType == 1)
@@ -41,6 +44,38 @@ int main()
         T_up_wall = 273;
         T_down_wall = 273;
         velocity_up = 1888.84;
+        velocity_down = 0;
+    }
+
+    else if(caseType == 2)
+    {
+        T_up_wall = 273;
+        T_down_wall = 273;
+        velocity_up = 1 * argonSpeedOfSound;
+        velocity_down = 0;
+    }
+
+    else if(caseType == 3)
+    {
+        T_up_wall = 273;
+        T_down_wall = 273;
+        velocity_up = 2 * argonSpeedOfSound;
+        velocity_down = 0;
+    }
+
+    else if(caseType == 4)
+    {
+        T_up_wall = 273;
+        T_down_wall = 273;
+        velocity_up = 3 * argonSpeedOfSound;
+        velocity_down = 0;
+    }
+
+    else if(caseType == 5)
+    {
+        T_up_wall = 273;
+        T_down_wall = 273;
+        velocity_up = 4.5 * argonSpeedOfSound;
         velocity_down = 0;
     }
 
@@ -54,7 +89,7 @@ int main()
 
     BorderConditionCouetteSlip borderConditionCouetteSlip;
     borderConditionCouetteSlip.setWallParameters(velocity_up, velocity_down, T_up_wall, T_down_wall);
-    double accommodationCoeff = 0.5;
+    double accommodationCoeff = 1.0;
     borderConditionCouetteSlip.setAccommodationCoeff(accommodationCoeff);
 
     //////////////////////////////////////////////////////////////
@@ -81,7 +116,7 @@ int main()
     startParamCouetteAr.setMixture(Ar); // TODO temp
     startParamCouetteArSlip.setMixture(Ar); // TODO temp
     macroParam startParamAr(Ar);
-    bool newSolving = false;
+    bool newSolving = true;
 
     double pressure;
 
@@ -92,7 +127,7 @@ int main()
         startParamAr.densityArray[0] =  startParamAr.fractionArray[0] * startParamAr.density;
 
         startParamAr.temp = 273; 
-        startParamAr.velocity_tau = 10;
+        startParamAr.velocity_tau = 0;
         startParamAr.velocity_normal = 0;
 
         pressure = startParamAr.density * T_up_wall * UniversalGasConstant / argon.molarMass;
@@ -102,11 +137,13 @@ int main()
 
         startParamCouetteArSlip.setBorderCondition(&borderConditionCouetteSlip);
         startParamCouetteArSlip.setDistributionParameter(startParamAr);
+
+        std::cout << "pressure: " << pressure << std::endl;
     }
     else
     {
         DataWriter writer(outputData); 
-        DataReader reader(outputData + "/prev_data");
+        DataReader reader(outputData + "/prev-data");
 
         reader.read();
         vector<macroParam> startParameters;
@@ -120,6 +157,7 @@ int main()
 
         pressure = startParameters[0].density * T_up_wall * UniversalGasConstant / argon.molarMass; // Pa, for the above set of conditions
 
+        std::cout << "pressure: " << pressure << std::endl;
     }
 
     //////////////////////////////////////////////////////////////
@@ -152,7 +190,7 @@ int main()
     double MFP = viscocity_argon / pressure * sqrt(M_PI * UniversalGasConstant * T_up_wall / 2. / argon.molarMass); // Mean free path length for Argon
 
     double h = 1; // General length between the walls
-    // h = h - 2 * MFP; // Effective length between the walls (length without Knudsen layers)
+    // h = h - 4 * MFP; // Effective length between the walls (length without Knudsen layers)
 
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
@@ -161,7 +199,7 @@ int main()
 
     
 
-    bool BCSlip = 1;
+    bool BCSlip = 0;
     if(BCSlip)
     {
         solver.setBorderConditions(&borderConditionCouetteSlip); // Slip border

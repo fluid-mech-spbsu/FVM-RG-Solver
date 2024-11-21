@@ -3,17 +3,17 @@ import math
 # Constants for Ar
 gamma = 1.67
 kb = 1.38064852e-23
-T = 1000
+T = 273
 L = 1
 R_ar = 8.314 / 0.039948
-rho = 0.00000478
-v = 150
+rho = 0.000115 # 0.00000478
+v = 302
 
 # Pressure calculation
 P = rho * R_ar * T
 
 # Reynolds number calculation
-mu = 20.988 * 1e-6
+mu = 2.0988e-05
 nu = mu / rho
 Re = v * L / nu
 
@@ -30,7 +30,7 @@ M = v / a
 # Kn_v2 = M / Re * math.sqrt(gamma * math.pi / 2)
 
 # v3 (MFP / L)
-Kn_v3 = mu / P * math.sqrt(math.pi * R_ar * T) / L
+Kn_v3 = mu / P * math.sqrt(math.pi * R_ar * T / 2) / L
 
 # Print results
 print(f"Pressure (P): {P}")

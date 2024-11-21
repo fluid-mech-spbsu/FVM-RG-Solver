@@ -9,6 +9,12 @@ double CoeffSolver1Comp1Temp::shareViscositySimple(macroParam currentPoint)
     double omega2 = temp1*temp2;
     return (5.*kB*currentPoint.temp) /(8.*omega2);
 }
+
+double CoeffSolver1Comp1Temp::shearViscPowerLaw(macroParam currentPoint)
+{
+    return 759.2E-8 * pow(currentPoint.temp / 90, 0.883);
+}
+
 double CoeffSolver1Comp1Temp::lambda(macroParam currentPoint)
 {
     double temp1 = sqrt(kB*currentPoint.temp/(M_PI*currentPoint.mixture.components[0].mass));
@@ -16,6 +22,13 @@ double CoeffSolver1Comp1Temp::lambda(macroParam currentPoint)
     double omega2 = temp1*temp2;
     return (75.*pow(kB,2)*currentPoint.temp) /(32. * currentPoint.mixture.components[0].mass * omega2 ) ;
 }
+
+double CoeffSolver1Comp1Temp::thermCondConstPr(macroParam currentPoint)
+{
+    // return (3. / 2.) * 520.33 * shearViscPowerLaw(currentPoint);
+    return 0.016439;
+}
+
 double CoeffSolver1Comp1Temp::shareViscosityOmega(Mixture mix,double currentT)
 {
     return (5.*kB*currentT) /(8.*getOmega22(mix,currentT));
